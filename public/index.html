@@ -141,6 +141,8 @@
           inp.type = 'text';
           inp.size = 50;
           inp.dataset.slot = i;
+          inp.tabIndex = i + 1;
+          inp.placeholder = '作業 / 移動 / 睡眠';
           td2.appendChild(inp);
           tr.appendChild(td1);
           tr.appendChild(td2);
@@ -230,6 +232,10 @@
         id('btnToday').addEventListener('click', () => {
           today();
           load();
+          setTimeout(() => {
+            const t = inputs.find((x) => !x.value);
+            t?.focus();
+          }, 0);
         });
         id('btnLoad').addEventListener('click', load);
         id('btnSave').addEventListener('click', save);
