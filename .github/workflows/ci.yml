@@ -29,10 +29,10 @@ jobs:
           npm install --no-audit --no-fund
 
       - name: Lint
-        run: npm run lint
+        run: npx --yes eslint -c eslint.config.mjs . --ext js
 
       - name: Format (check only)
-        run: npm run format:check
+        run: npx --yes prettier -c .
 
       - name: Test
         run: npm test -- --run
