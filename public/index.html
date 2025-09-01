@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>生活行動表（日次）</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
@@ -123,7 +123,7 @@
 
   async function load(){
     if(!/^\d{4}-\d{2}-\d{2}$/.test(dateEl.value)) return alert('日付が未指定');
-    const r = await fetch(`/api/day?date=${dateEl.value}`);
+    const r = await fetch(`api/day?date=${dateEl.value}`);
     const j = await r.json();
     inputs.forEach(inp=>{ inp.value=''; });
     (j.activities||[]).forEach(a=>{ if(inputs[a.slot]) inputs[a.slot].value = a.label||''; });
@@ -147,7 +147,7 @@
       note: noteEl.value,
       activities: inputs.map((inp,i)=>({ slot:i, label: inp.value.trim() })).filter(x=>x.label!=='')
     };
-    const r = await fetch('/api/day', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const r = await fetch('api/day', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
     const j = await r.json();
     if(j.ok) alert('保存しました'); else alert('保存に失敗');
   }
