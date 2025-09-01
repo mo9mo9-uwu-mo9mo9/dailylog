@@ -1,0 +1,25 @@
+name: Auto Codex Review
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, reopened, synchronize]
+
+jobs:
+  request:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Ask Codex to review in this PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const number = context.payload.pull_request.number;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: number,
+              body: "@codex review\n\n日本語でレビューしてください。Please respond in Japanese."
+            });
+
