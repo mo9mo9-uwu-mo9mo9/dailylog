@@ -25,13 +25,17 @@ textarea { width: 100%; font-size: 12px; }
 
 footer { text-align: right; }
 
-/* 印刷用（詳細は Issue #8 で仕上げ） */
+/* 印刷用（Issue #6: A4 横1ページ収まり） */
 @page { size: A4 landscape; margin: 8mm; }
 @media print {
   html, body { width: 297mm; height: 210mm; }
+  body { font-size: 11px; line-height: 1.2; }
+  header, footer { padding: 4mm 6mm; }
   .no-print { display: none !important; }
-  .grid { gap: 8px; }
+  .grid { gap: 6px; padding: 0 6mm 6mm; grid-template-columns: 2fr 1fr; }
+  .panel { break-inside: avoid; page-break-inside: avoid; }
   .slots { font-size: 10px; }
-  .slots input[type=text] { font-size: 10px; }
+  .slots th, .slots td { padding: 2px 4px; break-inside: avoid; page-break-inside: avoid; }
+  .slots input[type=text] { font-size: 10px; padding: 2px 2px; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
