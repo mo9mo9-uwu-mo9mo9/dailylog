@@ -24,26 +24,32 @@
       <div class="panel">
         <h2>30分ごとの行動</h2>
         <div class="slot-grid">
-          <table class="slots subtable" id="tableLeft">
-            <thead>
-              <tr>
-                <th>時刻</th>
-                <th>区分</th>
-                <th>内容</th>
-              </tr>
-            </thead>
-            <tbody id="slotBodyL"></tbody>
-          </table>
-          <table class="slots subtable" id="tableRight">
-            <thead>
-              <tr>
-                <th>時刻</th>
-                <th>区分</th>
-                <th>内容</th>
-              </tr>
-            </thead>
-            <tbody id="slotBodyR"></tbody>
-          </table>
+          <div class="slot-col">
+            <div class="slot-col-header">AM（午前）</div>
+            <table class="slots subtable" id="tableLeft">
+              <thead>
+                <tr>
+                  <th>時刻</th>
+                  <th>区分</th>
+                  <th>内容</th>
+                </tr>
+              </thead>
+              <tbody id="slotBodyL"></tbody>
+            </table>
+          </div>
+          <div class="slot-col">
+            <div class="slot-col-header">PM（午後）</div>
+            <table class="slots subtable" id="tableRight">
+              <thead>
+                <tr>
+                  <th>時刻</th>
+                  <th>区分</th>
+                  <th>内容</th>
+                </tr>
+              </thead>
+              <tbody id="slotBodyR"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -303,7 +309,12 @@
         id('btnLoad').addEventListener('click', load);
         id('btnSave').addEventListener('click', save);
         id('btnSleep').addEventListener('click', autoSleep);
-        id('btnPrint').addEventListener('click', () => window.print());
+        id('btnPrint').addEventListener('click', () => {
+          // 別ページの印刷用ビューへ（dateクエリ付き）
+          const d = document.getElementById('date').value;
+          const q = /^\d{4}-\d{2}-\d{2}$/.test(d) ? `?date=${d}` : '';
+          window.open(`/print.html${q}`, '_blank');
+        });
 
         // init
         today();
