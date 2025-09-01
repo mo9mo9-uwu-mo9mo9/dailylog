@@ -20,6 +20,6 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: number,
-              body: "@codex review"
+              body: "@codex reviewnn日本語でレビューしてください。Please respond in Japanese."
             });
 
