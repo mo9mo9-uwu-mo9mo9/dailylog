@@ -8,7 +8,7 @@
     "db:init": "node scripts/init-db.js",
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "test": "vitest -r",
+    "test": "vitest run",
     "lint": "eslint . --ext js",
     "format": "prettier -w ."
   },

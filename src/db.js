@@ -15,9 +15,18 @@ function defaultDbPath() {
 function openDb(dbFile) {
   const file = dbFile || defaultDbPath();
   const db = new Database(file);
-  // Pragmas for durability vs performance trade-off
-  db.pragma('journal_mode = WAL');
-  db.pragma('synchronous = NORMAL');
+  // Pragmas: use WAL on file DBs; avoid WAL on memory DBs to prevent lock errors
+  try {
+    if (db.memory) {
+      db.pragma('journal_mode = MEMORY');
+      db.pragma('synchronous = OFF');
+    } else {
+      db.pragma('journal_mode = WAL');
+      db.pragma('synchronous = NORMAL');
+    }
+  } catch (_) {
+    // Ignore pragma errors in test environments
+  }
   return db;
 }
 
