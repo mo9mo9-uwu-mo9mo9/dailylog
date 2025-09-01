@@ -39,6 +39,15 @@ const insActStmt = db.prepare('INSERT INTO activities (date, slot_index, label) 
 
 function isISODate(s){ return /^\d{4}-\d{2}-\d{2}$/.test(s||''); }
 
+function normalizeSlot(v) {
+  if (typeof v === 'number' && Number.isInteger(v)) return v;
+  if (typeof v === 'string' && /^\d{1,2}$/.test(v)) {
+    const n = Number(v);
+    if (Number.isInteger(n)) return n;
+  }
+  return null;
+}
+
 // --- API: GET /api/day
 app.get('/api/day', (req, res) => {
   const d = req.query.date;
@@ -75,12 +84,24 @@ app.post('/api/day', (req, res) => {
     note: String(p.note || '')
   };
   const activities = Array.isArray(p.activities) ? p.activities : [];
-  if (activities.some(a => (a.slot|0) < 0 || (a.slot|0) > 47)) return res.status(400).json({ error: 'bad slot' });
+  const seen = new Set();
+  const normalizedActs = [];
+  for (const a of activities) {
+    const n = normalizeSlot(a?.slot);
+    if (n === null || n < 0 || n > 47) {
+      return res.status(400).json({ error: 'bad slot', slot: a?.slot });
+    }
+    if (seen.has(n)) {
+      return res.status(400).json({ error: 'duplicate slot', slot: n });
+    }
+    seen.add(n);
+    normalizedActs.push({ slot: n, label: String(a?.label || '') });
+  }
 
   const tx = db.transaction(() => {
     upsertDayStmt.run(payload);
     delActsStmt.run(p.date);
-    for (const a of activities) insActStmt.run(p.date, a.slot|0, String(a.label||''));
+    for (const a of normalizedActs) insActStmt.run(p.date, a.slot, a.label);
   });
   tx();
   res.json({ ok: true });
