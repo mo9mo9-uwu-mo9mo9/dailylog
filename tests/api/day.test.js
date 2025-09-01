@@ -5,8 +5,7 @@ import { createApp } from '../../src/app.js';
 describe('/api/day', () => {
   let app;
   beforeEach(() => {
-    process.env.DB_FILE = ':memory:'; // isolated DB per test
-    const r = createApp();
+    const r = createApp({ dbFile: ':memory:' });
     app = r.app;
   });
 
@@ -56,4 +55,3 @@ describe('/api/day', () => {
     expect(dup.body.error).toBe('duplicate slot');
   });
 });
-

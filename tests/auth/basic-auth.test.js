@@ -9,8 +9,7 @@ function basic(u, p){
 describe('Basic Auth (optional)', () => {
   let app;
   beforeEach(() => {
-    process.env.DB_FILE = ':memory:';
-    const { app: a } = createApp({ auth: { user: 'u', pass: 'p' } });
+    const { app: a } = createApp({ dbFile: ':memory:', auth: { user: 'u', pass: 'p' } });
     app = a;
   });
 
@@ -26,4 +25,3 @@ describe('Basic Auth (optional)', () => {
     expect(r.body).toEqual({ ok: true });
   });
 });
-

@@ -5,8 +5,7 @@ import { createApp } from '../../src/app.js';
 describe('GET /api/health', () => {
   let app;
   beforeAll(() => {
-    process.env.DB_FILE = ':memory:';
-    const r = createApp();
+    const r = createApp({ dbFile: ':memory:' });
     app = r.app;
   });
 
@@ -16,4 +15,3 @@ describe('GET /api/health', () => {
     expect(res.body).toEqual({ ok: true });
   });
 });
-
