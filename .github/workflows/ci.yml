@@ -33,5 +33,8 @@ jobs:
 
       # Prettier は別PRでの一括整形を前提とし、本ワークフローでは未チェック
 
+      - name: Format (check only)
+        run: npm run format:check
+
       - name: Test
         run: npm test -- --run
