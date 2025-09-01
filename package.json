@@ -1,0 +1,16 @@
+{
+  "name": "dailylog",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DailyLog minimal app (DB init module)",
+  "main": "src/db.js",
+  "scripts": {
+    "db:init": "node scripts/init-db.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.6.0"
+  }
+}
