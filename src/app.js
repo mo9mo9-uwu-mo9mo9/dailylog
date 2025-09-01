@@ -20,11 +20,15 @@ function createApp(opts = {}) {
   const AUTH_USER = opts?.auth?.user ?? process.env.AUTH_USER ?? '';
   const AUTH_PASS = opts?.auth?.pass ?? process.env.AUTH_PASS ?? '';
   const { timingSafeEqual } = require('crypto');
-  function safeEq(a, b){
+  function safeEq(a, b) {
     const ba = Buffer.from(String(a ?? ''));
     const bb = Buffer.from(String(b ?? ''));
     if (ba.length !== bb.length) return false;
-    try { return timingSafeEqual(ba, bb); } catch { return false; }
+    try {
+      return timingSafeEqual(ba, bb);
+    } catch {
+      return false;
+    }
   }
   function basicAuth(req, res, next) {
     if (!AUTH_USER || !AUTH_PASS) return next();
@@ -45,7 +49,9 @@ function createApp(opts = {}) {
 
   // --- Helpers (DB statements)
   const getDayStmt = db.prepare('SELECT * FROM days WHERE date = ?');
-  const getActsStmt = db.prepare('SELECT slot_index AS slot, label FROM activities WHERE date = ? ORDER BY slot_index');
+  const getActsStmt = db.prepare(
+    'SELECT slot_index AS slot, label FROM activities WHERE date = ? ORDER BY slot_index'
+  );
   const upsertDayStmt = db.prepare(`INSERT INTO days (
     date, sleep_minutes, fatigue_morning, fatigue_noon, fatigue_night,
     mood_morning, mood_noon, mood_night, note
@@ -63,7 +69,9 @@ function createApp(opts = {}) {
   const delActsStmt = db.prepare('DELETE FROM activities WHERE date = ?');
   const insActStmt = db.prepare('INSERT INTO activities (date, slot_index, label) VALUES (?,?,?)');
 
-  function isISODate(s) { return /^\d{4}-\d{2}-\d{2}$/.test(s || ''); }
+  function isISODate(s) {
+    return /^\d{4}-\d{2}-\d{2}$/.test(s || '');
+  }
 
   function normalizeSlot(v) {
     if (typeof v === 'number' && Number.isInteger(v)) return v;
@@ -79,9 +87,15 @@ function createApp(opts = {}) {
     const d = req.query.date;
     if (!isISODate(d)) return res.status(400).json({ error: 'bad date' });
     const row = getDayStmt.get(d) || {
-      date: d, sleep_minutes: 0,
-      fatigue_morning: 0, fatigue_noon: 0, fatigue_night: 0,
-      mood_morning: 0, mood_noon: 0, mood_night: 0, note: ''
+      date: d,
+      sleep_minutes: 0,
+      fatigue_morning: 0,
+      fatigue_noon: 0,
+      fatigue_night: 0,
+      mood_morning: 0,
+      mood_noon: 0,
+      mood_night: 0,
+      note: '',
     };
     const acts = getActsStmt.all(d);
     res.json({
@@ -90,7 +104,7 @@ function createApp(opts = {}) {
       fatigue: { morning: row.fatigue_morning, noon: row.fatigue_noon, night: row.fatigue_night },
       mood: { morning: row.mood_morning, noon: row.mood_noon, night: row.mood_night },
       note: row.note,
-      activities: acts
+      activities: acts,
     });
   });
 
@@ -107,7 +121,7 @@ function createApp(opts = {}) {
       mood_morning: p?.mood?.morning | 0,
       mood_noon: p?.mood?.noon | 0,
       mood_night: p?.mood?.night | 0,
-      note: String(p.note || '')
+      note: String(p.note || ''),
     };
     const activities = Array.isArray(p.activities) ? p.activities : [];
     const seen = new Set();
@@ -137,7 +151,15 @@ function createApp(opts = {}) {
   const publicDir = path.join(process.cwd(), 'public');
   app.use(express.static(publicDir, { extensions: ['html'] }));
 
-  return { app, db, close: () => { try { db.close(); } catch {} } };
+  return {
+    app,
+    db,
+    close: () => {
+      try {
+        db.close();
+      } catch {}
+    },
+  };
 }
 
 module.exports = { createApp };

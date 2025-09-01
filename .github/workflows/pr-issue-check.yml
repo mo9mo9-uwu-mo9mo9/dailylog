@@ -1,0 +1,38 @@
+name: PR must reference an Issue
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR links to an Issue
+        shell: bash
+        run: |
+          title='${{ github.event.pull_request.title }}'
+          body='${{ github.event.pull_request.body }}'
+          content="$title
+          $body"
+          # 許容パターン:
+          # - Closes/Fixes/Resolves #123（英語でも可）
+          # - 関連 Issue: #123（日本語）
+          # - 単純な #123 参照
+          if echo "$content" | grep -qiE '(^|[[:space:]])(close[sd]?|fix(e[ds])?|resolve[sd]?)[: ]*#([0-9]+)'; then
+            echo 'OK: has closes/fixes/resolves reference'
+            exit 0
+          fi
+          if echo "$content" | grep -qiE '関連[[:space:]]*Issue[[:space:]]*:[[:space:]]*#([0-9]+)'; then
+            echo 'OK: has 関連 Issue reference'
+            exit 0
+          fi
+          # 一般的な #123 の参照（見出しの ## は除外）
+          if echo "$content" | grep -qP '(^|[^#])#[0-9]+'; then
+            echo 'OK: has plain #123 reference'
+            exit 0
+          fi
+          echo 'NG: PR に関連Issueの記載が見つかりません。以下のいずれかの形式で本文に追加してください:' >&2
+          echo '  - 関連 Issue: #<番号>' >&2
+          echo '  - Closes #<番号> / Fixes #<番号> / Resolves #<番号>' >&2
+          exit 1

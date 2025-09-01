@@ -1,172 +1,246 @@
 <!doctype html>
 <html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>生活行動表（日次）</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <header>
-    <h1>生活行動表（日次）</h1>
-    <div class="controls no-print">
-      <label>日付 <input type="date" id="date"></label>
-      <span id="weekday" class="muted"></span>
-      <button id="btnToday">今日</button>
-      <button id="btnLoad">読込</button>
-      <button id="btnSave">保存</button>
-      <button id="btnSleep">睡眠自動集計</button>
-      <button id="btnPrint">印刷</button>
-    </div>
-  </header>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>生活行動表（日次）</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>生活行動表（日次）</h1>
+      <div class="controls no-print">
+        <label>日付 <input type="date" id="date" /></label>
+        <span id="weekday" class="muted"></span>
+        <button id="btnToday">今日</button>
+        <button id="btnLoad">読込</button>
+        <button id="btnSave">保存</button>
+        <button id="btnSleep">睡眠自動集計</button>
+        <button id="btnPrint">印刷</button>
+      </div>
+    </header>
 
-  <section class="grid">
-    <div class="panel">
-      <h2>30分ごとの行動</h2>
-      <table id="slots" class="slots">
-        <thead>
-          <tr><th>時刻</th><th>内容</th></tr>
-        </thead>
-        <tbody id="slotBody"></tbody>
-      </table>
-    </div>
+    <section class="grid">
+      <div class="panel">
+        <h2>30分ごとの行動</h2>
+        <table id="slots" class="slots">
+          <thead>
+            <tr>
+              <th>時刻</th>
+              <th>内容</th>
+            </tr>
+          </thead>
+          <tbody id="slotBody"></tbody>
+        </table>
+      </div>
 
-    <div class="panel">
-      <h2>指標</h2>
-      <div class="metrics">
-        <div class="metric">
-          <label>合計睡眠時間（分）<input type="number" id="sleep" min="0" step="30"></label>
-        </div>
-        <div class="metric">
-          <h3>疲労度（1-10）</h3>
-          <label>朝 <input type="range" id="fat_m" min="1" max="10" value="5"><output id="fat_m_o">5</output></label>
-          <label>午後 <input type="range" id="fat_n" min="1" max="10" value="5"><output id="fat_n_o">5</output></label>
-          <label>夜 <input type="range" id="fat_e" min="1" max="10" value="5"><output id="fat_e_o">5</output></label>
-        </div>
-        <div class="metric">
-          <h3>気分指数（1-10） <small class="muted">1–3:わるい / 4–7:ふつう / 8–10:よい</small></h3>
-          <label>朝 <input type="range" id="mood_m" min="1" max="10" value="5"><output id="mood_m_o">5</output> <span class="badge" id="mood_m_b"></span></label>
-          <label>午後 <input type="range" id="mood_n" min="1" max="10" value="5"><output id="mood_n_o">5</output> <span class="badge" id="mood_n_b"></span></label>
-          <label>夜 <input type="range" id="mood_e" min="1" max="10" value="5"><output id="mood_e_o">5</output> <span class="badge" id="mood_e_b"></span></label>
-        </div>
-        <div class="metric">
-          <h3>備考</h3>
-          <textarea id="note" rows="6" placeholder="メモ…"></textarea>
+      <div class="panel">
+        <h2>指標</h2>
+        <div class="metrics">
+          <div class="metric">
+            <label>合計睡眠時間（分）<input type="number" id="sleep" min="0" step="30" /></label>
+          </div>
+          <div class="metric">
+            <h3>疲労度（1-10）</h3>
+            <label
+              >朝 <input type="range" id="fat_m" min="1" max="10" value="5" /><output id="fat_m_o"
+                >5</output
+              ></label
+            >
+            <label
+              >午後 <input type="range" id="fat_n" min="1" max="10" value="5" /><output id="fat_n_o"
+                >5</output
+              ></label
+            >
+            <label
+              >夜 <input type="range" id="fat_e" min="1" max="10" value="5" /><output id="fat_e_o"
+                >5</output
+              ></label
+            >
+          </div>
+          <div class="metric">
+            <h3>
+              気分指数（1-10） <small class="muted">1–3:わるい / 4–7:ふつう / 8–10:よい</small>
+            </h3>
+            <label
+              >朝 <input type="range" id="mood_m" min="1" max="10" value="5" /><output id="mood_m_o"
+                >5</output
+              >
+              <span class="badge" id="mood_m_b"></span
+            ></label>
+            <label
+              >午後 <input type="range" id="mood_n" min="1" max="10" value="5" /><output
+                id="mood_n_o"
+                >5</output
+              >
+              <span class="badge" id="mood_n_b"></span
+            ></label>
+            <label
+              >夜 <input type="range" id="mood_e" min="1" max="10" value="5" /><output id="mood_e_o"
+                >5</output
+              >
+              <span class="badge" id="mood_e_b"></span
+            ></label>
+          </div>
+          <div class="metric">
+            <h3>備考</h3>
+            <textarea id="note" rows="6" placeholder="メモ…"></textarea>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <footer>
-    <small class="muted">© DailyLog</small>
-  </footer>
+    <footer>
+      <small class="muted">© DailyLog</small>
+    </footer>
 
-<script>
-(function(){
-  const dateEl = document.getElementById('date');
-  const weekdayEl = document.getElementById('weekday');
-  const slotBody = document.getElementById('slotBody');
-  const sleepEl = document.getElementById('sleep');
-  const fatEls = { m: id('fat_m'), n: id('fat_n'), e: id('fat_e') };
-  const moodEls = { m: id('mood_m'), n: id('mood_n'), e: id('mood_e') };
-  const fatOut = { m: id('fat_m_o'), n: id('fat_n_o'), e: id('fat_e_o') };
-  const moodOut = { m: id('mood_m_o'), n: id('mood_n_o'), e: id('mood_n_o') };
-  const moodBadge = { m: id('mood_m_b'), n: id('mood_n_b'), e: id('mood_e_b') };
-  const noteEl = document.getElementById('note');
+    <script>
+      (function () {
+        const dateEl = document.getElementById('date');
+        const weekdayEl = document.getElementById('weekday');
+        const slotBody = document.getElementById('slotBody');
+        const sleepEl = document.getElementById('sleep');
+        const fatEls = { m: id('fat_m'), n: id('fat_n'), e: id('fat_e') };
+        const moodEls = { m: id('mood_m'), n: id('mood_n'), e: id('mood_e') };
+        const fatOut = { m: id('fat_m_o'), n: id('fat_n_o'), e: id('fat_e_o') };
+        const moodOut = { m: id('mood_m_o'), n: id('mood_n_o'), e: id('mood_n_o') };
+        const moodBadge = { m: id('mood_m_b'), n: id('mood_n_b'), e: id('mood_e_b') };
+        const noteEl = document.getElementById('note');
 
-  function id(x){ return document.getElementById(x); }
-  function fmt(i){
-    const h = Math.floor(i/2).toString().padStart(2,'0');
-    const m = (i%2 ? '30' : '00');
-    const hn = Math.floor((i+1)/2).toString().padStart(2,'0');
-    const mn = ((i+1)%2 ? '30' : '00');
-    return `${h}:${m}–${hn}:${mn}`;
-  }
-  function jaW(d){
-    return new Intl.DateTimeFormat('ja-JP',{weekday:'short'}).format(new Date(d+'T00:00:00'));
-  }
-  function moodLabel(v){ return v>=8 ? 'よい' : (v>=4 ? 'ふつう' : 'わるい'); }
+        function id(x) {
+          return document.getElementById(x);
+        }
+        function fmt(i) {
+          const h = Math.floor(i / 2)
+            .toString()
+            .padStart(2, '0');
+          const m = i % 2 ? '30' : '00';
+          const hn = Math.floor((i + 1) / 2)
+            .toString()
+            .padStart(2, '0');
+          const mn = (i + 1) % 2 ? '30' : '00';
+          return `${h}:${m}–${hn}:${mn}`;
+        }
+        function jaW(d) {
+          return new Intl.DateTimeFormat('ja-JP', { weekday: 'short' }).format(
+            new Date(d + 'T00:00:00')
+          );
+        }
+        function moodLabel(v) {
+          return v >= 8 ? 'よい' : v >= 4 ? 'ふつう' : 'わるい';
+        }
 
-  // Build 48 rows
-  const inputs = [];
-  for(let i=0;i<48;i++){
-    const tr = document.createElement('tr');
-    const td1 = document.createElement('td'); td1.textContent = fmt(i);
-    const td2 = document.createElement('td');
-    const inp = document.createElement('input');
-    inp.type = 'text'; inp.size = 50; inp.dataset.slot = i;
-    td2.appendChild(inp); tr.appendChild(td1); tr.appendChild(td2);
-    slotBody.appendChild(tr); inputs.push(inp);
-  }
+        // Build 48 rows
+        const inputs = [];
+        for (let i = 0; i < 48; i++) {
+          const tr = document.createElement('tr');
+          const td1 = document.createElement('td');
+          td1.textContent = fmt(i);
+          const td2 = document.createElement('td');
+          const inp = document.createElement('input');
+          inp.type = 'text';
+          inp.size = 50;
+          inp.dataset.slot = i;
+          td2.appendChild(inp);
+          tr.appendChild(td1);
+          tr.appendChild(td2);
+          slotBody.appendChild(tr);
+          inputs.push(inp);
+        }
 
-  function syncMoodUI(){
-    for(const k of ['m','n','e']){
-      fatOut[k].value = fatEls[k].value;
-    }
-    const map = { m:'mood_m', n:'mood_n', e:'mood_e' };
-    const out = { m:'mood_m_o', n:'mood_n_o', e:'mood_e_o' };
-    for(const k of ['m','n','e']){
-      id(out[k]).value = id(map[k]).value;
-      moodBadge[k].textContent = moodLabel(parseInt(id(map[k]).value||'0',10));
-    }
-  }
-  ['m','n','e'].forEach(k => { moodEls[k].addEventListener('input', syncMoodUI); });
-  ['m','n','e'].forEach(k => { fatEls[k].addEventListener('input', syncMoodUI); });
+        function syncMoodUI() {
+          for (const k of ['m', 'n', 'e']) {
+            fatOut[k].value = fatEls[k].value;
+          }
+          const map = { m: 'mood_m', n: 'mood_n', e: 'mood_e' };
+          const out = { m: 'mood_m_o', n: 'mood_n_o', e: 'mood_e_o' };
+          for (const k of ['m', 'n', 'e']) {
+            id(out[k]).value = id(map[k]).value;
+            moodBadge[k].textContent = moodLabel(parseInt(id(map[k]).value || '0', 10));
+          }
+        }
+        ['m', 'n', 'e'].forEach((k) => {
+          moodEls[k].addEventListener('input', syncMoodUI);
+        });
+        ['m', 'n', 'e'].forEach((k) => {
+          fatEls[k].addEventListener('input', syncMoodUI);
+        });
 
-  function today(){
-    const d = new Date();
-    const ds = d.toISOString().slice(0,10);
-    dateEl.value = ds;
-    weekdayEl.textContent = `（${jaW(ds)}）`;
-  }
-  dateEl.addEventListener('change', ()=>{ weekdayEl.textContent = `（${jaW(dateEl.value)}）`; });
+        function today() {
+          const d = new Date();
+          const ds = d.toISOString().slice(0, 10);
+          dateEl.value = ds;
+          weekdayEl.textContent = `（${jaW(ds)}）`;
+        }
+        dateEl.addEventListener('change', () => {
+          weekdayEl.textContent = `（${jaW(dateEl.value)}）`;
+        });
 
-  async function load(){
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(dateEl.value)) return alert('日付が未指定');
-    const r = await fetch(`api/day?date=${dateEl.value}`);
-    const j = await r.json();
-    inputs.forEach(inp=>{ inp.value=''; });
-    (j.activities||[]).forEach(a=>{ if(inputs[a.slot]) inputs[a.slot].value = a.label||''; });
-    sleepEl.value = j.sleep_minutes||0;
-    fatEls.m.value = j.fatigue?.morning||0;
-    fatEls.n.value = j.fatigue?.noon||0;
-    fatEls.e.value = j.fatigue?.night||0;
-    moodEls.m.value = j.mood?.morning||0;
-    moodEls.n.value = j.mood?.noon||0;
-    moodEls.e.value = j.mood?.night||0;
-    noteEl.value = j.note||'';
-    syncMoodUI();
-  }
+        async function load() {
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(dateEl.value)) return alert('日付が未指定');
+          const r = await fetch(`api/day?date=${dateEl.value}`);
+          const j = await r.json();
+          inputs.forEach((inp) => {
+            inp.value = '';
+          });
+          (j.activities || []).forEach((a) => {
+            if (inputs[a.slot]) inputs[a.slot].value = a.label || '';
+          });
+          sleepEl.value = j.sleep_minutes || 0;
+          fatEls.m.value = j.fatigue?.morning || 0;
+          fatEls.n.value = j.fatigue?.noon || 0;
+          fatEls.e.value = j.fatigue?.night || 0;
+          moodEls.m.value = j.mood?.morning || 0;
+          moodEls.n.value = j.mood?.noon || 0;
+          moodEls.e.value = j.mood?.night || 0;
+          noteEl.value = j.note || '';
+          syncMoodUI();
+        }
 
-  async function save(){
-    const payload = {
-      date: dateEl.value,
-      sleep_minutes: parseInt(sleepEl.value||'0',10),
-      fatigue: { morning: +fatEls.m.value, noon: +fatEls.n.value, night: +fatEls.e.value },
-      mood: { morning: +moodEls.m.value, noon: +moodEls.n.value, night: +moodEls.e.value },
-      note: noteEl.value,
-      activities: inputs.map((inp,i)=>({ slot:i, label: inp.value.trim() })).filter(x=>x.label!=='')
-    };
-    const r = await fetch('api/day', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    const j = await r.json();
-    if(j.ok) alert('保存しました'); else alert('保存に失敗');
-  }
+        async function save() {
+          const payload = {
+            date: dateEl.value,
+            sleep_minutes: parseInt(sleepEl.value || '0', 10),
+            fatigue: { morning: +fatEls.m.value, noon: +fatEls.n.value, night: +fatEls.e.value },
+            mood: { morning: +moodEls.m.value, noon: +moodEls.n.value, night: +moodEls.e.value },
+            note: noteEl.value,
+            activities: inputs
+              .map((inp, i) => ({ slot: i, label: inp.value.trim() }))
+              .filter((x) => x.label !== ''),
+          };
+          const r = await fetch('api/day', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          const j = await r.json();
+          if (j.ok) alert('保存しました');
+          else alert('保存に失敗');
+        }
 
-  function autoSleep(){
-    const minutes = inputs.reduce((acc,inp)=> acc + (/^\s*睡眠\s*$/i.test(inp.value)?30:0), 0);
-    sleepEl.value = minutes;
-  }
+        function autoSleep() {
+          const minutes = inputs.reduce(
+            (acc, inp) => acc + (/^\s*睡眠\s*$/i.test(inp.value) ? 30 : 0),
+            0
+          );
+          sleepEl.value = minutes;
+        }
 
-  // Buttons
-  id('btnToday').addEventListener('click', ()=>{ today(); load(); });
-  id('btnLoad').addEventListener('click', load);
-  id('btnSave').addEventListener('click', save);
-  id('btnSleep').addEventListener('click', autoSleep);
-  id('btnPrint').addEventListener('click', ()=> window.print());
+        // Buttons
+        id('btnToday').addEventListener('click', () => {
+          today();
+          load();
+        });
+        id('btnLoad').addEventListener('click', load);
+        id('btnSave').addEventListener('click', save);
+        id('btnSleep').addEventListener('click', autoSleep);
+        id('btnPrint').addEventListener('click', () => window.print());
 
-  // init
-  today(); syncMoodUI(); load();
-})();
-</script>
-</body>
+        // init
+        today();
+        syncMoodUI();
+        load();
+      })();
+    </script>
+  </body>
 </html>

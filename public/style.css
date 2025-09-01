@@ -1,41 +1,163 @@
-:root { --fg:#111; --muted:#666; --border:#ccc; --bg:#fff; }
-* { box-sizing: border-box; }
-body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif; color:var(--fg); background:var(--bg); margin:0; }
-header, footer { padding: 8px 12px; }
-h1 { font-size: 18px; margin: 6px 0 8px; }
-.controls label { margin-right: 8px; }
-.controls button { margin-right: 6px; }
-.muted { color: var(--muted); }
+:root {
+  --fg: #111;
+  --muted: #666;
+  --border: #ccc;
+  --bg: #fff;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    'Noto Sans JP',
+    sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+  margin: 0;
+}
+header,
+footer {
+  padding: 8px 12px;
+}
+h1 {
+  font-size: 18px;
+  margin: 6px 0 8px;
+}
+.controls label {
+  margin-right: 8px;
+}
+.controls button {
+  margin-right: 6px;
+}
+.muted {
+  color: var(--muted);
+}
 
-.grid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; padding: 0 12px 12px; }
-.panel { border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
-.panel h2 { font-size: 14px; margin: 0 0 8px; }
+.grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 12px;
+  padding: 0 12px 12px;
+}
+.panel {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+}
+.panel h2 {
+  font-size: 14px;
+  margin: 0 0 8px;
+}
 
-.slots { width: 100%; border-collapse: collapse; font-size: 12px; }
-.slots th, .slots td { border: 1px solid var(--border); padding: 3px 6px; }
-.slots input[type=text] { width: 100%; border: none; outline: none; font-size: 12px; padding: 3px 2px; }
+.slots {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.slots th,
+.slots td {
+  border: 1px solid var(--border);
+  padding: 3px 6px;
+}
+.slots input[type='text'] {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 12px;
+  padding: 3px 2px;
+}
 
-.metrics { display: grid; gap: 10px; }
-.metric h3 { font-size: 12px; margin: 6px 0; }
-.metric label { display: block; margin: 4px 0; }
-.metric input[type=range] { width: 180px; vertical-align: middle; }
-.metric output { display: inline-block; width: 24px; text-align: center; margin-left: 6px; }
-.badge { display: inline-block; min-width: 36px; text-align: center; border:1px solid var(--border); border-radius: 4px; padding: 1px 4px; margin-left: 6px; font-size: 11px; }
-textarea { width: 100%; font-size: 12px; }
+.metrics {
+  display: grid;
+  gap: 10px;
+}
+.metric h3 {
+  font-size: 12px;
+  margin: 6px 0;
+}
+.metric label {
+  display: block;
+  margin: 4px 0;
+}
+.metric input[type='range'] {
+  width: 180px;
+  vertical-align: middle;
+}
+.metric output {
+  display: inline-block;
+  width: 24px;
+  text-align: center;
+  margin-left: 6px;
+}
+.badge {
+  display: inline-block;
+  min-width: 36px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 4px;
+  margin-left: 6px;
+  font-size: 11px;
+}
+textarea {
+  width: 100%;
+  font-size: 12px;
+}
 
-footer { text-align: right; }
+footer {
+  text-align: right;
+}
 
 /* 印刷用（Issue #6: A4 横1ページ収まり） */
-@page { size: A4 landscape; margin: 8mm; }
+@page {
+  size: A4 landscape;
+  margin: 8mm;
+}
 @media print {
-  html, body { width: 297mm; height: 210mm; }
-  body { font-size: 11px; line-height: 1.2; }
-  header, footer { padding: 4mm 6mm; }
-  .no-print { display: none !important; }
-  .grid { gap: 6px; padding: 0 6mm 6mm; grid-template-columns: 2fr 1fr; }
-  .panel { break-inside: avoid; page-break-inside: avoid; }
-  .slots { font-size: 10px; }
-  .slots th, .slots td { padding: 2px 4px; break-inside: avoid; page-break-inside: avoid; }
-  .slots input[type=text] { font-size: 10px; padding: 2px 2px; }
-  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html,
+  body {
+    width: 297mm;
+    height: 210mm;
+  }
+  body {
+    font-size: 11px;
+    line-height: 1.2;
+  }
+  header,
+  footer {
+    padding: 4mm 6mm;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .grid {
+    gap: 6px;
+    padding: 0 6mm 6mm;
+    grid-template-columns: 2fr 1fr;
+  }
+  .panel {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .slots {
+    font-size: 10px;
+  }
+  .slots th,
+  .slots td {
+    padding: 2px 4px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .slots input[type='text'] {
+    font-size: 10px;
+    padding: 2px 2px;
+  }
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }

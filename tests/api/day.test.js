@@ -3,12 +3,16 @@ import request from 'supertest';
 import { createApp } from '../../src/app.js';
 
 describe('/api/day', () => {
-  let app; let close;
+  let app;
+  let close;
   beforeEach(() => {
     const r = createApp({ dbFile: ':memory:' });
-    app = r.app; close = r.close;
+    app = r.app;
+    close = r.close;
   });
-  afterEach(() => { close?.(); });
+  afterEach(() => {
+    close?.();
+  });
 
   it('400 when date is invalid', async () => {
     const r1 = await request(app).get('/api/day');
@@ -24,7 +28,10 @@ describe('/api/day', () => {
       fatigue: { morning: 3, noon: 5, night: 7 },
       mood: { morning: 4, noon: 6, night: 8 },
       note: 'test',
-      activities: [ { slot: 0, label: '朝食' }, { slot: '03', label: '移動' } ]
+      activities: [
+        { slot: 0, label: '朝食' },
+        { slot: '03', label: '移動' },
+      ],
     };
     const p = await request(app).post('/api/day').send(payload);
     expect(p.status).toBe(200);
@@ -42,16 +49,23 @@ describe('/api/day', () => {
   });
 
   it('rejects invalid slot or duplicate slot', async () => {
-    const bad = await request(app).post('/api/day').send({
-      date: '2025-09-01',
-      activities: [ { slot: 100, label: 'x' } ]
-    });
+    const bad = await request(app)
+      .post('/api/day')
+      .send({
+        date: '2025-09-01',
+        activities: [{ slot: 100, label: 'x' }],
+      });
     expect(bad.status).toBe(400);
 
-    const dup = await request(app).post('/api/day').send({
-      date: '2025-09-01',
-      activities: [ { slot: 1, label: 'a' }, { slot: '01', label: 'b' } ]
-    });
+    const dup = await request(app)
+      .post('/api/day')
+      .send({
+        date: '2025-09-01',
+        activities: [
+          { slot: 1, label: 'a' },
+          { slot: '01', label: 'b' },
+        ],
+      });
     expect(dup.status).toBe(400);
     expect(dup.body.error).toBe('duplicate slot');
   });

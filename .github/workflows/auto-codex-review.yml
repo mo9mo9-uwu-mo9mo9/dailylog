@@ -22,4 +22,3 @@ jobs:
               issue_number: number,
               body: "@codex review\n\n日本語でレビューしてください。Please respond in Japanese."
             });
-
