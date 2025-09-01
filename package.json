@@ -5,12 +5,28 @@
   "description": "DailyLog minimal app (DB init module)",
   "main": "src/db.js",
   "scripts": {
-    "db:init": "node scripts/init-db.js"
+    "db:init": "node scripts/init-db.js",
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "test": "vitest -r",
+    "lint": "eslint . --ext js",
+    "format": "prettier -w ."
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
-    "better-sqlite3": "^9.6.0"
+    "better-sqlite3": "^9.6.0",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "compression": "^1.7.4",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0",
+    "vitest": "^1.6.0",
+    "supertest": "^7.0.0",
+    "eslint": "^9.9.0",
+    "prettier": "^3.3.3"
   }
 }
