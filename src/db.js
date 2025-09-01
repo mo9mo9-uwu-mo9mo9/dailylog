@@ -59,8 +59,8 @@ function initDb(dbFile) {
   `);
   // best-effort migration for existing DB: add category if missing
   try {
-    const cols = db.prepare("PRAGMA table_info(activities)").all();
-    if (!cols.some(c => c.name === 'category')) {
+    const cols = db.prepare('PRAGMA table_info(activities)').all();
+    if (!cols.some((c) => c.name === 'category')) {
       db.exec("ALTER TABLE activities ADD COLUMN category TEXT DEFAULT ''");
     }
   } catch (_) {}

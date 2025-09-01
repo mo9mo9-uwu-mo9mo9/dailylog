@@ -137,7 +137,11 @@ function createApp(opts = {}) {
         return res.status(400).json({ error: 'duplicate slot', slot: n });
       }
       seen.add(n);
-      normalizedActs.push({ slot: n, label: String(a?.label || ''), category: String(a?.category || '') });
+      normalizedActs.push({
+        slot: n,
+        label: String(a?.label || ''),
+        category: String(a?.category || ''),
+      });
     }
 
     const tx = db.transaction(() => {

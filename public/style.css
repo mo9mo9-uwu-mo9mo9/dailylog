@@ -87,16 +87,36 @@ h1 {
 }
 
 /* カテゴリ色（画面用） */
-.cat-sleep { background: #eef6ff; }
-.cat-work { background: #fff0f0; }
-.cat-study { background: #fff8e1; }
-.cat-move { background: #f0fff0; }
-.cat-meal { background: #f5f0ff; }
-.cat-exercise { background: #e8fff7; }
-.cat-house { background: #f4f4f4; }
-.cat-family { background: #fff2e7; }
-.cat-rest { background: #e7f3ff; }
-.cat-other { background: #ffffff; }
+.cat-sleep {
+  background: #eef6ff;
+}
+.cat-work {
+  background: #fff0f0;
+}
+.cat-study {
+  background: #fff8e1;
+}
+.cat-move {
+  background: #f0fff0;
+}
+.cat-meal {
+  background: #f5f0ff;
+}
+.cat-exercise {
+  background: #e8fff7;
+}
+.cat-house {
+  background: #f4f4f4;
+}
+.cat-family {
+  background: #fff2e7;
+}
+.cat-rest {
+  background: #e7f3ff;
+}
+.cat-other {
+  background: #ffffff;
+}
 
 .metrics {
   display: grid;
@@ -189,14 +209,34 @@ footer {
   }
 
   /* 印刷用パターン（モノクロ判別） */
-  .cat-sleep { background: repeating-linear-gradient(90deg, #000 0 0.6px, #fff 0.6px 3px) !important; }
-  .cat-work { background: repeating-linear-gradient(45deg, #000 0 0.6px, #fff 0.6px 3px) !important; }
-  .cat-study { background: repeating-linear-gradient(135deg, #000 0 0.6px, #fff 0.6px 3px) !important; }
-  .cat-move { background: repeating-linear-gradient(0deg, #000 0 0.6px, #fff 0.6px 3px) !important; }
-  .cat-meal { background: repeating-linear-gradient(45deg, #000 0 0.6px, #fff 0.6px 1.8px) !important; }
-  .cat-exercise { background: repeating-linear-gradient(135deg, #000 0 0.6px, #fff 0.6px 1.8px) !important; }
-  .cat-house { background: repeating-linear-gradient(0deg, #000 0 0.9px, #fff 0.9px 4px) !important; }
-  .cat-family { background: repeating-linear-gradient(90deg, #000 0 0.9px, #fff 0.9px 4px) !important; }
-  .cat-rest { background: repeating-linear-gradient(0deg, #000 0 0.6px, #fff 0.6px 6px) !important; }
-  .cat-other { background: #fff !important; }
+  .cat-sleep {
+    background: repeating-linear-gradient(90deg, #000 0 0.6px, #fff 0.6px 3px) !important;
+  }
+  .cat-work {
+    background: repeating-linear-gradient(45deg, #000 0 0.6px, #fff 0.6px 3px) !important;
+  }
+  .cat-study {
+    background: repeating-linear-gradient(135deg, #000 0 0.6px, #fff 0.6px 3px) !important;
+  }
+  .cat-move {
+    background: repeating-linear-gradient(0deg, #000 0 0.6px, #fff 0.6px 3px) !important;
+  }
+  .cat-meal {
+    background: repeating-linear-gradient(45deg, #000 0 0.6px, #fff 0.6px 1.8px) !important;
+  }
+  .cat-exercise {
+    background: repeating-linear-gradient(135deg, #000 0 0.6px, #fff 0.6px 1.8px) !important;
+  }
+  .cat-house {
+    background: repeating-linear-gradient(0deg, #000 0 0.9px, #fff 0.9px 4px) !important;
+  }
+  .cat-family {
+    background: repeating-linear-gradient(90deg, #000 0 0.9px, #fff 0.9px 4px) !important;
+  }
+  .cat-rest {
+    background: repeating-linear-gradient(0deg, #000 0 0.6px, #fff 0.6px 6px) !important;
+  }
+  .cat-other {
+    background: #fff !important;
+  }
 }
