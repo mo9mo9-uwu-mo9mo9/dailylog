@@ -21,7 +21,11 @@ npm init -y
 npm i express helmet compression dotenv better-sqlite3
 npm i -D nodemon vitest supertest eslint prettier
 
-# 2) 実行（server.js を用意した場合）
+# 2) .env を作成（例）
+cp .env.example .env
+sed -i.bak 's/^PORT=.*/PORT=3002/' .env && rm .env.bak
+
+# 3) 実行（開発: nodemon / 本番: node or systemd）
 npx nodemon server.js
 # 3) テスト（導入後）
 npx vitest -r
@@ -34,6 +38,12 @@ npx vitest -r
 ├─ public/                 # フロント（後で追加）
 ├─ data/                   # SQLite（Git 管理外）
 └─ tmp/docs/               # 私的ドキュメント（Git 管理外）
+
+## 環境変数
+- `PORT`: リッスンポート（例: 3002）
+- `DATA_DIR`: SQLite の格納ディレクトリ（例: ./data）
+- `DB_FILE`: SQLite ファイル名（例: dailylog.db / `:memory:` ならメモリDB）
+- `AUTH_USER` / `AUTH_PASS`: 設定すると Basic 認証が有効
 ```
 
 ## 貢献ガイド
