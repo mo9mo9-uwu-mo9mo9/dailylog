@@ -3,12 +3,16 @@ import request from 'supertest';
 import { createApp } from '../../src/app.js';
 
 describe('GET /api/health', () => {
-  let app; let close;
+  let app;
+  let close;
   beforeAll(() => {
     const r = createApp({ dbFile: ':memory:' });
-    app = r.app; close = r.close;
+    app = r.app;
+    close = r.close;
   });
-  afterAll(() => { close?.(); });
+  afterAll(() => {
+    close?.();
+  });
 
   it('returns ok:true', async () => {
     const res = await request(app).get('/api/health');
