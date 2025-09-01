@@ -7,9 +7,13 @@ function ensureDir(p) {
 }
 
 function defaultDbPath() {
+  const envFile = process.env.DB_FILE;
+  if (envFile === ':memory:' || envFile === 'file::memory:?cache=shared') {
+    return envFile; // real in-memory DB for tests
+  }
   const dataDir = process.env.DATA_DIR || path.join(process.cwd(), 'data');
   ensureDir(dataDir);
-  return path.join(dataDir, process.env.DB_FILE || 'dailylog.db');
+  return path.join(dataDir, envFile || 'dailylog.db');
 }
 
 function openDb(dbFile) {

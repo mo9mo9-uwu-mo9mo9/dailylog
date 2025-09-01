@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../../src/app.js';
 
 describe('/api/day', () => {
-  let app;
+  let app; let close;
   beforeEach(() => {
-    process.env.DB_FILE = ':memory:'; // isolated DB per test
-    const r = createApp();
-    app = r.app;
+    const r = createApp({ dbFile: ':memory:' });
+    app = r.app; close = r.close;
   });
+  afterEach(() => { close?.(); });
 
   it('400 when date is invalid', async () => {
     const r1 = await request(app).get('/api/day');
@@ -56,4 +56,3 @@ describe('/api/day', () => {
     expect(dup.body.error).toBe('duplicate slot');
   });
 });
-

@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../../src/app.js';
 
 describe('GET /api/health', () => {
-  let app;
+  let app; let close;
   beforeAll(() => {
-    process.env.DB_FILE = ':memory:';
-    const r = createApp();
-    app = r.app;
+    const r = createApp({ dbFile: ':memory:' });
+    app = r.app; close = r.close;
   });
+  afterAll(() => { close?.(); });
 
   it('returns ok:true', async () => {
     const res = await request(app).get('/api/health');
@@ -16,4 +16,3 @@ describe('GET /api/health', () => {
     expect(res.body).toEqual({ ok: true });
   });
 });
-
