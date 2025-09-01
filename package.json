@@ -9,8 +9,8 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "test": "vitest run",
-    "lint": "eslint . --ext js",
-    "lint:fix": "eslint . --ext js --fix",
+    "lint": "eslint -c eslint.config.mjs . --ext js",
+    "lint:fix": "eslint -c eslint.config.mjs . --ext js --fix",
     "format": "prettier -w .",
     "format:check": "prettier -c ."
   },

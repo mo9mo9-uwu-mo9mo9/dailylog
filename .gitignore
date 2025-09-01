@@ -42,3 +42,6 @@ tmp/
 
 # ドキュメント（Git 管理外）
 docs/
+
+# Local docs (untracked)
+tmp/docs/

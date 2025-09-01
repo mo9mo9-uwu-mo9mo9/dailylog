@@ -1,0 +1,37 @@
+name: CI (lint & test)
+
+# NOTE: ブランチ更新時の安定実行のための微修正（再実行トリガ）
+
+on:
+  push:
+    branches: [ main, "feat/**", "fix/**", "chore/**", "ci/**" ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm install --no-audit --no-fund
+
+      - name: Lint
+        run: npx --yes eslint -c eslint.config.mjs . --ext js
+
+      # Prettier は別PRでの一括整形を前提とし、本ワークフローでは未チェック
+
+      - name: Test
+        run: npm test -- --run

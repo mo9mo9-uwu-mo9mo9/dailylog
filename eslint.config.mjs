@@ -1,13 +1,11 @@
-// ESLint フラットコンフィグ（ESLint v9）
+// ESLint フラットコンフィグ（ESLint v9, ESM）
 import globals from 'globals';
 import js from '@eslint/js';
 
 export default [
-  // 無視パターン
   {
-    ignores: ['node_modules/**', 'data/**', 'tmp/**', 'eslint.config.js'],
+    ignores: ['node_modules/**', 'data/**', 'tmp/**', 'eslint.config.*'],
   },
-  // JS ファイル向け設定
   {
     files: ['**/*.js'],
     languageOptions: {
@@ -28,7 +26,6 @@ export default [
       'no-empty': ['error', { allowEmptyCatch: true }],
     },
   },
-  // テスト（ESM）
   {
     files: ['tests/**/*.js'],
     languageOptions: {
@@ -40,3 +37,4 @@ export default [
     },
   },
 ];
+
