@@ -23,15 +23,28 @@
     <section class="grid">
       <div class="panel">
         <h2>30分ごとの行動</h2>
-        <table id="slots" class="slots">
-          <thead>
-            <tr>
-              <th>時刻</th>
-              <th>内容</th>
-            </tr>
-          </thead>
-          <tbody id="slotBody"></tbody>
-        </table>
+        <div class="slot-grid">
+          <table class="slots subtable" id="tableLeft">
+            <thead>
+              <tr>
+                <th>時刻</th>
+                <th>区分</th>
+                <th>内容</th>
+              </tr>
+            </thead>
+            <tbody id="slotBodyL"></tbody>
+          </table>
+          <table class="slots subtable" id="tableRight">
+            <thead>
+              <tr>
+                <th>時刻</th>
+                <th>区分</th>
+                <th>内容</th>
+              </tr>
+            </thead>
+            <tbody id="slotBodyR"></tbody>
+          </table>
+        </div>
       </div>
 
       <div class="panel">
@@ -98,7 +111,8 @@
       (function () {
         const dateEl = document.getElementById('date');
         const weekdayEl = document.getElementById('weekday');
-        const slotBody = document.getElementById('slotBody');
+        const slotBodyL = document.getElementById('slotBodyL');
+        const slotBodyR = document.getElementById('slotBodyR');
         const sleepEl = document.getElementById('sleep');
         const fatEls = { m: id('fat_m'), n: id('fat_n'), e: id('fat_e') };
         const moodEls = { m: id('mood_m'), n: id('mood_n'), e: id('mood_e') };
@@ -130,24 +144,58 @@
           return v >= 8 ? 'よい' : v >= 4 ? 'ふつう' : 'わるい';
         }
 
-        // Build 48 rows
-        const inputs = [];
-        for (let i = 0; i < 48; i++) {
+        // Build 48 rows (24×2 列) with category select + detail
+        const detailInputs = [];
+        const catSelects = [];
+        const CATS = [
+          ['sleep', '睡眠'],
+          ['work', '仕事'],
+          ['study', '勉強'],
+          ['move', '移動'],
+          ['meal', '食事'],
+          ['exercise', '運動'],
+          ['house', '家事'],
+          ['family', '家族・ケア'],
+          ['rest', '休憩'],
+          ['other', 'その他'],
+        ];
+        function buildRow(i) {
           const tr = document.createElement('tr');
           const td1 = document.createElement('td');
           td1.textContent = fmt(i);
           const td2 = document.createElement('td');
+          const sel = document.createElement('select');
+          sel.dataset.slot = i;
+          sel.tabIndex = i + 1;
+          for (const [v, lab] of CATS) {
+            const o = document.createElement('option');
+            o.value = v;
+            o.textContent = lab;
+            sel.appendChild(o);
+          }
+          td2.appendChild(sel);
+          const td3 = document.createElement('td');
           const inp = document.createElement('input');
           inp.type = 'text';
-          inp.size = 50;
-          inp.dataset.slot = i;
-          inp.tabIndex = i + 1;
+          inp.size = 40;
           inp.placeholder = '作業 / 移動 / 睡眠';
-          td2.appendChild(inp);
+          inp.dataset.slot = i;
+          td3.appendChild(inp);
           tr.appendChild(td1);
           tr.appendChild(td2);
-          slotBody.appendChild(tr);
-          inputs.push(inp);
+          tr.appendChild(td3);
+          detailInputs[i] = inp;
+          catSelects[i] = sel;
+          sel.addEventListener('change', () => {
+            tr.className = 'cat-' + (sel.value || 'other');
+          });
+          return tr;
+        }
+        for (let i = 0; i < 24; i++) {
+          slotBodyL.appendChild(buildRow(i));
+        }
+        for (let i = 24; i < 48; i++) {
+          slotBodyR.appendChild(buildRow(i));
         }
 
         function syncMoodUI() {
@@ -182,11 +230,22 @@
           if (!/^\d{4}-\d{2}-\d{2}$/.test(dateEl.value)) return alert('日付が未指定');
           const r = await fetch(`api/day?date=${dateEl.value}`);
           const j = await r.json();
-          inputs.forEach((inp) => {
-            inp.value = '';
+          detailInputs.forEach((inp, idx) => {
+            if (inp) {
+              inp.value = '';
+              const sel = catSelects[idx];
+              if (sel) {
+                sel.value = 'other';
+                sel.dispatchEvent(new Event('change'));
+              }
+            }
           });
           (j.activities || []).forEach((a) => {
-            if (inputs[a.slot]) inputs[a.slot].value = a.label || '';
+            if (detailInputs[a.slot]) detailInputs[a.slot].value = a.label || '';
+            if (catSelects[a.slot]) {
+              catSelects[a.slot].value = a.category || 'other';
+              catSelects[a.slot].dispatchEvent(new Event('change'));
+            }
           });
           sleepEl.value = j.sleep_minutes || 0;
           fatEls.m.value = j.fatigue?.morning || 0;
@@ -206,8 +265,12 @@
             fatigue: { morning: +fatEls.m.value, noon: +fatEls.n.value, night: +fatEls.e.value },
             mood: { morning: +moodEls.m.value, noon: +moodEls.n.value, night: +moodEls.e.value },
             note: noteEl.value,
-            activities: inputs
-              .map((inp, i) => ({ slot: i, label: inp.value.trim() }))
+            activities: detailInputs
+              .map((inp, i) => ({
+                slot: i,
+                label: inp.value.trim(),
+                category: catSelects[i]?.value || 'other',
+              }))
               .filter((x) => x.label !== ''),
           };
           const r = await fetch('api/day', {

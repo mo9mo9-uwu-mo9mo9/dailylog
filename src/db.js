@@ -53,9 +53,17 @@ function initDb(dbFile) {
       date        TEXT NOT NULL,
       slot_index  INTEGER NOT NULL,
       label       TEXT DEFAULT '',
+      category    TEXT DEFAULT '',
       PRIMARY KEY(date, slot_index)
     );
   `);
+  // best-effort migration for existing DB: add category if missing
+  try {
+    const cols = db.prepare('PRAGMA table_info(activities)').all();
+    if (!cols.some((c) => c.name === 'category')) {
+      db.exec("ALTER TABLE activities ADD COLUMN category TEXT DEFAULT ''");
+    }
+  } catch (_) {}
   return db;
 }
 

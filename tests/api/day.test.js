@@ -40,8 +40,8 @@ describe('/api/day', () => {
     const g = await request(app).get('/api/day').query({ date: '2025-09-01' });
     expect(g.status).toBe(200);
     expect(g.body.activities).toEqual([
-      { slot: 0, label: '朝食' },
-      { slot: 3, label: '移動' },
+      { slot: 0, label: '朝食', category: '' },
+      { slot: 3, label: '移動', category: '' },
     ]);
     expect(g.body.sleep_minutes).toBe(300);
     expect(g.body.fatigue).toEqual({ morning: 3, noon: 5, night: 7 });
