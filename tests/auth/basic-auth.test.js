@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../../src/app.js';
 
@@ -7,12 +7,12 @@ function basic(u, p){
 }
 
 describe('Basic Auth (optional)', () => {
-  let app;
+  let app; let close;
   beforeEach(() => {
-    process.env.DB_FILE = ':memory:';
-    const { app: a } = createApp({ auth: { user: 'u', pass: 'p' } });
-    app = a;
+    const { app: a, close: c } = createApp({ dbFile: ':memory:', auth: { user: 'u', pass: 'p' } });
+    app = a; close = c;
   });
+  afterEach(() => { close?.(); });
 
   it('401 without credentials', async () => {
     const r = await request(app).get('/api/health');
@@ -26,4 +26,3 @@ describe('Basic Auth (optional)', () => {
     expect(r.body).toEqual({ ok: true });
   });
 });
-

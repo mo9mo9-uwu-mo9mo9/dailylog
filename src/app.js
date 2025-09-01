@@ -19,6 +19,13 @@ function createApp(opts = {}) {
   // Optional Basic Auth (enabled when AUTH_USER/PASS are set)
   const AUTH_USER = opts?.auth?.user ?? process.env.AUTH_USER ?? '';
   const AUTH_PASS = opts?.auth?.pass ?? process.env.AUTH_PASS ?? '';
+  const { timingSafeEqual } = require('crypto');
+  function safeEq(a, b){
+    const ba = Buffer.from(String(a ?? ''));
+    const bb = Buffer.from(String(b ?? ''));
+    if (ba.length !== bb.length) return false;
+    try { return timingSafeEqual(ba, bb); } catch { return false; }
+  }
   function basicAuth(req, res, next) {
     if (!AUTH_USER || !AUTH_PASS) return next();
     const hdr = req.headers['authorization'] || '';
@@ -27,7 +34,7 @@ function createApp(opts = {}) {
       return res.status(401).send('Auth required');
     }
     const [u, p] = Buffer.from(hdr.split(' ')[1], 'base64').toString().split(':');
-    if (u === AUTH_USER && p === AUTH_PASS) return next();
+    if (safeEq(u, AUTH_USER) && safeEq(p, AUTH_PASS)) return next();
     res.set('WWW-Authenticate', 'Basic realm="DailyLog"');
     return res.status(401).send('Bad credentials');
   }
@@ -130,8 +137,7 @@ function createApp(opts = {}) {
   const publicDir = path.join(process.cwd(), 'public');
   app.use(express.static(publicDir, { extensions: ['html'] }));
 
-  return { app, db };
+  return { app, db, close: () => { try { db.close(); } catch {} } };
 }
 
 module.exports = { createApp };
-
