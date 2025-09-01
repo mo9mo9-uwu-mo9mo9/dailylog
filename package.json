@@ -10,7 +10,9 @@
     "start": "node server.js",
     "test": "vitest run",
     "lint": "eslint . --ext js",
-    "format": "prettier -w ."
+    "lint:fix": "eslint . --ext js --fix",
+    "format": "prettier -w .",
+    "format:check": "prettier -c ."
   },
   "engines": {
     "node": ">=18"
@@ -27,6 +29,7 @@
     "vitest": "^1.6.0",
     "supertest": "^7.0.0",
     "eslint": "^9.9.0",
-    "prettier": "^3.3.3"
+    "prettier": "^3.3.3",
+    "globals": "^15.8.0"
   }
 }
