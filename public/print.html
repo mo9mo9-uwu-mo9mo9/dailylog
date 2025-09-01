@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>印刷用｜生活行動表（日次）</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      /* 印刷用専用スタイル（画面でもプレビューしやすく） */
+      body {
+        padding: 8px;
+      }
+      .print-wrap {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .legend {
+        font-size: 12px;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 4px;
+      }
+      .legend div {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .box {
+        width: 10px;
+        height: 10px;
+        border: 1px solid #333;
+      }
+      .grid48 {
+        display: grid;
+        grid-template-columns: repeat(24, 1fr);
+        gap: 1px;
+      }
+      .cell {
+        height: 12px;
+        border: 1px solid #ccc;
+      }
+      .meta {
+        font-size: 12px;
+        color: #555;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      @media print {
+        body {
+          padding: 0;
+        }
+        .noprint {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="meta">
+      <div id="dtitle">日付</div>
+      <button class="noprint" id="btnPrint">印刷</button>
+    </div>
+    <div class="print-wrap">
+      <div>
+        <h3>30分ブロック（0:00–23:30）</h3>
+        <div class="grid48" id="grid48"></div>
+      </div>
+      <div>
+        <h3>凡例（カテゴリ）</h3>
+        <div class="legend" id="legend"></div>
+        <h3>指標・メモ</h3>
+        <div id="memo"></div>
+      </div>
+    </div>
+    <script>
+      (async function () {
+        const q = new URLSearchParams(location.search);
+        const d = q.get('date') || new Date().toISOString().slice(0, 10);
+        document.getElementById('dtitle').textContent = `対象日: ${d}`;
+        const r = await fetch(`api/day?date=${d}`);
+        const j = await r.json();
+        const CATS = [
+          ['sleep', '睡眠'],
+          ['work', '仕事'],
+          ['study', '勉強'],
+          ['move', '移動'],
+          ['meal', '食事'],
+          ['exercise', '運動'],
+          ['house', '家事'],
+          ['family', '家族・ケア'],
+          ['rest', '休憩'],
+          ['other', 'その他'],
+        ];
+        // legend
+        const lg = document.getElementById('legend');
+        for (const [v, lab] of CATS) {
+          const dv = document.createElement('div');
+          const bx = document.createElement('span');
+          bx.className = 'box cat-' + v;
+          dv.appendChild(bx);
+          const sp = document.createElement('span');
+          sp.textContent = lab;
+          dv.appendChild(sp);
+          lg.appendChild(dv);
+        }
+        // grid 48 cells
+        const grid = document.getElementById('grid48');
+        const bySlot = new Map((j.activities || []).map((a) => [a.slot, a]));
+        for (let i = 0; i < 48; i++) {
+          const c = document.createElement('div');
+          c.className = 'cell';
+          const a = bySlot.get(i);
+          const cat = a?.category || 'other';
+          c.classList.add('cat-' + cat);
+          c.title = `${String(a?.label || '')}`;
+          grid.appendChild(c);
+        }
+        // memo
+        const m = document.getElementById('memo');
+        m.textContent = j.note || '';
+        document.getElementById('btnPrint').addEventListener('click', () => window.print());
+      })();
+    </script>
+  </body>
+</html>
