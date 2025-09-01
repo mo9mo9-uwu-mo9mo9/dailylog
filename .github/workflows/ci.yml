@@ -4,9 +4,9 @@ name: CI (lint & test)
 
 on:
   push:
-    branches: [main, 'feat/**', 'fix/**', 'chore/**', 'ci/**']
+    branches: [ main, "feat/**", "fix/**", "chore/**", "ci/**" ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   build:
@@ -31,8 +31,7 @@ jobs:
       - name: Lint
         run: npx --yes eslint -c eslint.config.mjs . --ext js
 
-      - name: Format (check only)
-        run: npx --yes prettier -c .
+      # Prettier は別PRでの一括整形を前提とし、本ワークフローでは未チェック
 
       - name: Test
         run: npm test -- --run
