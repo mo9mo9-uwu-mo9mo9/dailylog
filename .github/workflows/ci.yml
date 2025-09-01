@@ -1,5 +1,7 @@
 name: CI (lint & test)
 
+# NOTE: ブランチ更新時の安定実行のための微修正（再実行トリガ）
+
 on:
   push:
     branches: [ main, "feat/**", "fix/**", "chore/**", "ci/**" ]
