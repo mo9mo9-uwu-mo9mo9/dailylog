@@ -310,10 +310,11 @@
         id('btnSave').addEventListener('click', save);
         id('btnSleep').addEventListener('click', autoSleep);
         id('btnPrint').addEventListener('click', () => {
-          // 別ページの印刷用ビューへ（dateクエリ付き）
           const d = document.getElementById('date').value;
-          const q = /^\d{4}-\d{2}-\d{2}$/.test(d) ? `?date=${d}` : '';
-          window.open(`/print.html${q}`, '_blank');
+          const m = /^\d{4}-\d{2}-\d{2}$/.test(d)
+            ? d.slice(0, 7)
+            : new Date().toISOString().slice(0, 7);
+          window.open(`month.html?month=${m}`, '_blank');
         });
 
         // init

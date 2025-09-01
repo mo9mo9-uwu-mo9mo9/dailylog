@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>月次一覧｜生活行動表</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      body { padding: 8px; }
+      .head { display:flex; gap:12px; align-items:center; }
+      .head h2 { margin: 6px 0; }
+      .legend { font-size: 12px; display:grid; grid-template-columns: repeat(5,1fr); gap:6px; margin-left:auto; }
+      .legend div { display:flex; align-items:center; gap:6px; }
+      .box { width: 10px; height: 10px; border:1px solid #333; }
+      .monthwrap { margin-top: 8px; display: grid; grid-template-columns: 1fr; gap: 6px; }
+      .dayrow { display:grid; grid-template-columns: 74px auto; gap: 6px; align-items:center; }
+      .grid48 { display: grid; grid-template-columns: repeat(24, 1fr); gap: 1px; }
+      .cell { height: 10px; border:1px solid #ccc; }
+      .muted { color:#666; font-size:12px; }
+      @media print { body { padding:0 } .noprint { display:none } }
+    </style>
+  </head>
+  <body>
+    <div class="head">
+      <h2 id="mtitle">月次一覧</h2>
+      <div class="legend" id="legend"></div>
+      <button class="noprint" id="btnPrint">印刷</button>
+    </div>
+    <div class="muted">各行: 30分×24時間の概況（カテゴリパターン）。クリックで日次ページへ。</div>
+    <div class="monthwrap" id="monthwrap"></div>
+    <script>
+      (async function(){
+        const q = new URLSearchParams(location.search);
+        const m = q.get('month') || new Date().toISOString().slice(0,7);
+        document.getElementById('mtitle').textContent = `月次一覧 ${m}`;
+        const CATS = [['sleep','睡眠'],['work','仕事'],['study','勉強'],['move','移動'],['meal','食事'],['exercise','運動'],['house','家事'],['family','家族・ケア'],['rest','休憩'],['other','その他']];
+        const lg = document.getElementById('legend');
+        for(const [v,lab] of CATS){ const dv=document.createElement('div'); const bx=document.createElement('span'); bx.className='box cat-'+v; dv.appendChild(bx); const sp=document.createElement('span'); sp.textContent=lab; dv.appendChild(sp); lg.appendChild(dv);}        
+
+        function daysInMonth(ym){
+          const [Y,MM] = ym.split('-').map(Number);
+          const last = new Date(Y, MM, 0).getDate();
+          const out=[]; for(let d=1; d<=last; d++){ out.push(`${ym}-${String(d).padStart(2,'0')}`); } return out;
+        }
+        const container = document.getElementById('monthwrap');
+        for(const d of daysInMonth(m)){
+          const r = await fetch(`api/day?date=${d}`);
+          const j = await r.json();
+          const row=document.createElement('div'); row.className='dayrow';
+          const label=document.createElement('div'); label.textContent=d; label.className='muted'; row.appendChild(label);
+          const grid=document.createElement('div'); grid.className='grid48';
+          const bySlot=new Map((j.activities||[]).map(a=>[a.slot,a]));
+          for(let i=0;i<48;i++){ const c=document.createElement('div'); c.className='cell'; const a=bySlot.get(i); const cat=(a?.category)||'other'; c.classList.add('cat-'+cat); c.title=String(a?.label||''); grid.appendChild(c);}          
+          row.appendChild(grid);
+          row.addEventListener('click', ()=>{ window.open(`./?date=${d}`,'_blank'); });
+          container.appendChild(row);
+        }
+        document.getElementById('btnPrint').addEventListener('click', ()=> window.print());
+      })();
+    </script>
+  </body>
+  </html>
+
