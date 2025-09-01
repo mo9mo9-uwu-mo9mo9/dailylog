@@ -1,0 +1,42 @@
+# OS / エディタ
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.history/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+.eslintcache
+.parcel-cache/
+.cache/
+
+# ビルド/配布物
+dist/
+build/
+out/
+
+# テスト/計測
+coverage/
+.nyc_output/
+
+# 環境変数/秘密情報
+.env
+.env.*
+!.env.example
+
+# アプリデータ
+data/
+!data/.gitkeep
+*.sqlite
+*.sqlite-journal
+
+# 一時
+tmp/
+*.log
+
