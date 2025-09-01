@@ -35,6 +35,7 @@
 - 本リポジトリの Issue / PR / コミットメッセージ / ドキュメント / やり取りは、原則として「日本語のみ」を使用します（英語不可）。
 
 ## 開発フロー（重要）
+
 - 変更は必ず「調査 → Issue 作成 → Issue に基づく PR」の順で進める。
 - PR には関連 Issue を必ず明記する（例: `関連 Issue: #123` または `Closes #123`）。
 - CI で PR 本文／タイトルに Issue 参照が無い場合は失敗させる（.github/workflows/pr-issue-check.yml）。
