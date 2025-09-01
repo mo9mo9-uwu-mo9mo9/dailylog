@@ -40,3 +40,5 @@ data/
 tmp/
 *.log
 
+# ドキュメント（Git 管理外）
+docs/
