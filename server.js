@@ -14,6 +14,23 @@ app.use(helmet({ contentSecurityPolicy: false }));
 app.use(compression());
 app.use(express.json({ limit: '1mb' }));
 
+// Optional Basic Auth (enabled when AUTH_USER/PASS are set)
+const AUTH_USER = process.env.AUTH_USER || '';
+const AUTH_PASS = process.env.AUTH_PASS || '';
+function basicAuth(req, res, next) {
+  if (!AUTH_USER || !AUTH_PASS) return next();
+  const hdr = req.headers['authorization'] || '';
+  if (!hdr.startsWith('Basic ')) {
+    res.set('WWW-Authenticate', 'Basic realm="DailyLog"');
+    return res.status(401).send('Auth required');
+  }
+  const [u, p] = Buffer.from(hdr.split(' ')[1], 'base64').toString().split(':');
+  if (u === AUTH_USER && p === AUTH_PASS) return next();
+  res.set('WWW-Authenticate', 'Basic realm="DailyLog"');
+  return res.status(401).send('Bad credentials');
+}
+app.use(basicAuth);
+
 // Health
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
