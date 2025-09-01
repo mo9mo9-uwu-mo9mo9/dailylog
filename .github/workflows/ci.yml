@@ -4,9 +4,9 @@ name: CI (lint & test)
 
 on:
   push:
-    branches: [ main, "feat/**", "fix/**", "chore/**", "ci/**" ]
+    branches: [main, 'feat/**', 'fix/**', 'chore/**', 'ci/**']
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
