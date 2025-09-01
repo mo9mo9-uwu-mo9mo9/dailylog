@@ -31,7 +31,8 @@ jobs:
       - name: Lint
         run: npx --yes eslint -c eslint.config.mjs . --ext js
 
-      # Prettier は別PRでの一括整形を前提とし、本ワークフローでは未チェック
+      - name: Format (check only)
+        run: npx --yes prettier -c .
 
       - name: Test
         run: npm test -- --run
