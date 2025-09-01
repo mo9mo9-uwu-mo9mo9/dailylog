@@ -50,7 +50,7 @@ function createApp(opts = {}) {
   // --- Helpers (DB statements)
   const getDayStmt = db.prepare('SELECT * FROM days WHERE date = ?');
   const getActsStmt = db.prepare(
-    'SELECT slot_index AS slot, label FROM activities WHERE date = ? ORDER BY slot_index'
+    'SELECT slot_index AS slot, label, category FROM activities WHERE date = ? ORDER BY slot_index'
   );
   const upsertDayStmt = db.prepare(`INSERT INTO days (
     date, sleep_minutes, fatigue_morning, fatigue_noon, fatigue_night,
@@ -67,7 +67,9 @@ function createApp(opts = {}) {
     mood_night=excluded.mood_night,
     note=excluded.note`);
   const delActsStmt = db.prepare('DELETE FROM activities WHERE date = ?');
-  const insActStmt = db.prepare('INSERT INTO activities (date, slot_index, label) VALUES (?,?,?)');
+  const insActStmt = db.prepare(
+    'INSERT INTO activities (date, slot_index, label, category) VALUES (?,?,?,?)'
+  );
 
   function isISODate(s) {
     return /^\d{4}-\d{2}-\d{2}$/.test(s || '');
@@ -135,13 +137,13 @@ function createApp(opts = {}) {
         return res.status(400).json({ error: 'duplicate slot', slot: n });
       }
       seen.add(n);
-      normalizedActs.push({ slot: n, label: String(a?.label || '') });
+      normalizedActs.push({ slot: n, label: String(a?.label || ''), category: String(a?.category || '') });
     }
 
     const tx = db.transaction(() => {
       upsertDayStmt.run(payload);
       delActsStmt.run(p.date);
-      for (const a of normalizedActs) insActStmt.run(p.date, a.slot, a.label);
+      for (const a of normalizedActs) insActStmt.run(p.date, a.slot, a.label, a.category);
     });
     tx();
     res.json({ ok: true });
