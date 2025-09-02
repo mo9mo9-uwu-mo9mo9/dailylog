@@ -16,7 +16,8 @@
         <button id="btnLoad">読込</button>
         <button id="btnSave">保存</button>
         <button id="btnSleep">睡眠自動集計</button>
-        <button id="btnPrint">印刷</button>
+        <button id="btnMonthly">月次ページ</button>
+        <button id="btnPrint">印刷（日次）</button>
       </div>
     </header>
 
@@ -309,12 +310,17 @@
         id('btnLoad').addEventListener('click', load);
         id('btnSave').addEventListener('click', save);
         id('btnSleep').addEventListener('click', autoSleep);
-        id('btnPrint').addEventListener('click', () => {
+        id('btnMonthly').addEventListener('click', () => {
           const d = document.getElementById('date').value;
           const m = /^\d{4}-\d{2}-\d{2}$/.test(d)
             ? d.slice(0, 7)
             : new Date().toISOString().slice(0, 7);
           window.open(`month.html?month=${m}`, '_blank');
+        });
+        id('btnPrint').addEventListener('click', () => {
+          const d = document.getElementById('date').value;
+          const q = /^\d{4}-\d{2}-\d{2}$/.test(d) ? `?date=${d}` : '';
+          window.open(`print.html${q}`, '_blank');
         });
 
         // init
