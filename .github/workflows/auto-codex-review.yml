@@ -5,11 +5,11 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: "レビューを依頼する PR 番号"
+        description: 'レビューを依頼する PR 番号'
         required: true
         type: number
       confirm:
-        description: "本当に @codex review を投稿する"
+        description: '本当に @codex review を投稿する'
         required: true
         default: false
         type: boolean
@@ -20,7 +20,7 @@ jobs:
     if: ${{ inputs.confirm == true }}
     runs-on: ubuntu-latest
     permissions:
-      issues: write   # コメント投稿に必要。ほかは最小権限。
+      issues: write # コメント投稿に必要。ほかは最小権限。
       pull-requests: read
       contents: read
     steps:

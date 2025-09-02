@@ -153,6 +153,88 @@ function createApp(opts = {}) {
     res.json({ ok: true });
   });
 
+  // --- API: GET /api/export?month=YYYY-MM (CSV)
+  app.get('/api/export', (req, res) => {
+    const m = String(req.query.month || '');
+    if (!/^\d{4}-\d{2}$/.test(m)) return res.status(400).json({ error: 'bad month' });
+
+    // Prepare queries
+    const like = `${m}-%`;
+    const daysStmt = db.prepare('SELECT * FROM days WHERE date LIKE ? ORDER BY date');
+    const actsByDateStmt = db.prepare(
+      'SELECT slot_index AS slot, label, category FROM activities WHERE date = ?'
+    );
+
+    function timeForSlot(i) {
+      const h = String(Math.floor(i / 2)).padStart(2, '0');
+      const m1 = i % 2 ? '30' : '00';
+      const hn = String(Math.floor((i + 1) / 2)).padStart(2, '0');
+      const mn = (i + 1) % 2 ? '30' : '00';
+      return { start: `${h}:${m1}`, end: `${hn}:${mn}` };
+    }
+
+    const rows = [];
+    rows.push(
+      [
+        'date',
+        'slot_index',
+        'time_start',
+        'time_end',
+        'category',
+        'label',
+        'sleep_minutes',
+        'fatigue_morning',
+        'fatigue_noon',
+        'fatigue_night',
+        'mood_morning',
+        'mood_noon',
+        'mood_night',
+        'note',
+      ].join(',')
+    );
+
+    const dayRows = daysStmt.all(like);
+    for (const d of dayRows) {
+      const acts = Object.create(null);
+      for (const a of actsByDateStmt.all(d.date)) acts[a.slot] = a;
+      for (let i = 0; i < 48; i++) {
+        const t = timeForSlot(i);
+        const a = acts[i] || { label: '', category: '' };
+        rows.push(
+          [
+            d.date,
+            String(i),
+            t.start,
+            t.end,
+            escapeCsv(a.category),
+            escapeCsv(a.label),
+            d.sleep_minutes,
+            d.fatigue_morning,
+            d.fatigue_noon,
+            d.fatigue_night,
+            d.mood_morning,
+            d.mood_noon,
+            d.mood_night,
+            escapeCsv(d.note || ''),
+          ].join(',')
+        );
+      }
+    }
+
+    const csv = rows.join('\n');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="dailylog_${m}.csv"`);
+    res.send(csv);
+  });
+
+  function escapeCsv(v) {
+    const s = String(v ?? '');
+    if (s.includes('"') || s.includes(',') || s.includes('\n')) {
+      return '"' + s.replaceAll('"', '""') + '"';
+    }
+    return s;
+  }
+
   // Static files
   const publicDir = path.join(process.cwd(), 'public');
   app.use(express.static(publicDir, { extensions: ['html'] }));
