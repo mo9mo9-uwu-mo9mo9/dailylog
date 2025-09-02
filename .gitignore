@@ -45,3 +45,6 @@ docs/
 
 # Local docs (untracked)
 tmp/docs/
+
+# ローカル機密設定（Git 管理外）
+local/
