@@ -3,6 +3,28 @@
   --muted: #666;
   --border: #ccc;
   --bg: #fff;
+  /* Graph (month grid) high-contrast palette - Okabe–Ito inspired */
+  --cat-sleep: #56b4e9; /* sky blue */
+  --cat-work: #d55e00; /* vermillion */
+  --cat-study: #e69f00; /* orange */
+  --cat-move: #009e73; /* bluish green */
+  --cat-meal: #cc79a7; /* reddish purple */
+  --cat-exercise: #0072b2; /* blue */
+  --cat-house: #7f7f7f; /* grey */
+  --cat-family: #f0e442; /* yellow */
+  --cat-rest: #a6761d; /* brown */
+  --cat-other: #b3b3b3; /* light grey */
+  /* Medium palette (between pastel and high-contrast) */
+  --cat-sleep-md: #9fd3f2;
+  --cat-work-md: #f2a56f;
+  --cat-study-md: #f4c76a;
+  --cat-move-md: #5cc3a8;
+  --cat-meal-md: #e4a9c8;
+  --cat-exercise-md: #59a3d3;
+  --cat-house-md: #b3b3b3;
+  --cat-family-md: #f6eda0;
+  --cat-rest-md: #c79b52;
+  --cat-other-md: #d7d7d7;
 }
 * {
   box-sizing: border-box;
@@ -129,6 +151,136 @@ h1 {
   background: #ffffff;
 }
 
+/* 高コントラスト（グラフ専用スコープ） */
+/* 月次グリッドと凡例ボックスのみ強配色にし、日次のテーブル背景は従来の淡色を維持 */
+.palette-hc .grid48 .cell {
+  border: 0 !important;
+}
+.palette-hc .cat-sleep {
+  background: var(--cat-sleep) !important;
+}
+.palette-hc .cat-work {
+  background: var(--cat-work) !important;
+}
+.palette-hc .cat-study {
+  background: var(--cat-study) !important;
+}
+.palette-hc .cat-move {
+  background: var(--cat-move) !important;
+}
+.palette-hc .cat-meal {
+  background: var(--cat-meal) !important;
+}
+.palette-hc .cat-exercise {
+  background: var(--cat-exercise) !important;
+}
+.palette-hc .cat-house {
+  background: var(--cat-house) !important;
+}
+.palette-hc .cat-family {
+  background: var(--cat-family) !important;
+}
+.palette-hc .cat-rest {
+  background: var(--cat-rest) !important;
+}
+.palette-hc .cat-other {
+  background: var(--cat-other) !important;
+}
+
+.palette-hc .legend .box.cat-sleep {
+  background: var(--cat-sleep) !important;
+}
+.palette-hc .legend .box.cat-work {
+  background: var(--cat-work) !important;
+}
+.palette-hc .legend .box.cat-study {
+  background: var(--cat-study) !important;
+}
+.palette-hc .legend .box.cat-move {
+  background: var(--cat-move) !important;
+}
+.palette-hc .legend .box.cat-meal {
+  background: var(--cat-meal) !important;
+}
+.palette-hc .legend .box.cat-exercise {
+  background: var(--cat-exercise) !important;
+}
+.palette-hc .legend .box.cat-house {
+  background: var(--cat-house) !important;
+}
+.palette-hc .legend .box.cat-family {
+  background: var(--cat-family) !important;
+}
+.palette-hc .legend .box.cat-rest {
+  background: var(--cat-rest) !important;
+}
+.palette-hc .legend .box.cat-other {
+  background: var(--cat-other) !important;
+}
+
+/* ミドル配色（中コントラスト） */
+.palette-mid .cat-sleep {
+  background: var(--cat-sleep-md) !important;
+}
+.palette-mid .cat-work {
+  background: var(--cat-work-md) !important;
+}
+.palette-mid .cat-study {
+  background: var(--cat-study-md) !important;
+}
+.palette-mid .cat-move {
+  background: var(--cat-move-md) !important;
+}
+.palette-mid .cat-meal {
+  background: var(--cat-meal-md) !important;
+}
+.palette-mid .cat-exercise {
+  background: var(--cat-exercise-md) !important;
+}
+.palette-mid .cat-house {
+  background: var(--cat-house-md) !important;
+}
+.palette-mid .cat-family {
+  background: var(--cat-family-md) !important;
+}
+.palette-mid .cat-rest {
+  background: var(--cat-rest-md) !important;
+}
+.palette-mid .cat-other {
+  background: var(--cat-other-md) !important;
+}
+
+.palette-mid .legend .box.cat-sleep {
+  background: var(--cat-sleep-md) !important;
+}
+.palette-mid .legend .box.cat-work {
+  background: var(--cat-work-md) !important;
+}
+.palette-mid .legend .box.cat-study {
+  background: var(--cat-study-md) !important;
+}
+.palette-mid .legend .box.cat-move {
+  background: var(--cat-move-md) !important;
+}
+.palette-mid .legend .box.cat-meal {
+  background: var(--cat-meal-md) !important;
+}
+.palette-mid .legend .box.cat-exercise {
+  background: var(--cat-exercise-md) !important;
+}
+.palette-mid .legend .box.cat-house {
+  background: var(--cat-house-md) !important;
+}
+.palette-mid .legend .box.cat-family {
+  background: var(--cat-family-md) !important;
+}
+.palette-mid .legend .box.cat-rest {
+  background: var(--cat-rest-md) !important;
+}
+.palette-mid .legend .box.cat-other {
+  background: var(--cat-other-md) !important;
+}
+
 .metrics {
   display: grid;
   gap: 10px;
@@ -248,6 +400,41 @@ footer {
     background: repeating-linear-gradient(0deg, #000 0 0.6px, #fff 0.6px 6px) !important;
   }
   .cat-other {
+    background: #fff !important;
+  }
+
+  /* 月次グラフ（grid48）向け：モノクロ時の判別性をより高める粗めパターンと薄い罫線 */
+  .grid48 .cell {
+    border: 0.2mm solid #000 !important;
+  }
+  .grid48 .cat-sleep {
+    background: repeating-linear-gradient(90deg, #000 0 0.2mm, #fff 0.2mm 1mm) !important;
+  }
+  .grid48 .cat-work {
+    background: repeating-linear-gradient(45deg, #000 0 0.25mm, #fff 0.25mm 1.2mm) !important;
+  }
+  .grid48 .cat-study {
+    background: repeating-linear-gradient(135deg, #000 0 0.25mm, #fff 0.25mm 1.2mm) !important;
+  }
+  .grid48 .cat-move {
+    background: repeating-linear-gradient(0deg, #000 0 0.2mm, #fff 0.2mm 1.2mm) !important;
+  }
+  .grid48 .cat-meal {
+    background: repeating-linear-gradient(45deg, #000 0 0.2mm, #fff 0.2mm 0.9mm) !important;
+  }
+  .grid48 .cat-exercise {
+    background: repeating-linear-gradient(135deg, #000 0 0.2mm, #fff 0.2mm 0.9mm) !important;
+  }
+  .grid48 .cat-house {
+    background: repeating-linear-gradient(0deg, #000 0 0.3mm, #fff 0.3mm 1.5mm) !important;
+  }
+  .grid48 .cat-family {
+    background: repeating-linear-gradient(90deg, #000 0 0.3mm, #fff 0.3mm 1.5mm) !important;
+  }
+  .grid48 .cat-rest {
+    background: repeating-linear-gradient(0deg, #000 0 0.25mm, #fff 0.25mm 2mm) !important;
+  }
+  .grid48 .cat-other {
     background: #fff !important;
   }
 }

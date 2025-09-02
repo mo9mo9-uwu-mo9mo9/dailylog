@@ -6,58 +6,369 @@
     <title>月次一覧｜生活行動表</title>
     <link rel="stylesheet" href="style.css" />
     <style>
-      body { padding: 8px; }
-      .head { display:flex; gap:12px; align-items:center; }
-      .head h2 { margin: 6px 0; }
-      .legend { font-size: 12px; display:grid; grid-template-columns: repeat(5,1fr); gap:6px; margin-left:auto; }
-      .legend div { display:flex; align-items:center; gap:6px; }
-      .box { width: 10px; height: 10px; border:1px solid #333; }
-      .monthwrap { margin-top: 8px; display: grid; grid-template-columns: 1fr; gap: 6px; }
-      .dayrow { display:grid; grid-template-columns: 74px auto; gap: 6px; align-items:center; }
-      .grid48 { display: grid; grid-template-columns: repeat(24, 1fr); gap: 1px; }
-      .cell { height: 10px; border:1px solid #ccc; }
-      .muted { color:#666; font-size:12px; }
-      @media print { body { padding:0 } .noprint { display:none } }
+      :root {
+        --cell-h: 14px;
+        --grid-gap: 2px;
+        --cell-radius: 2px;
+        --cell-border: 0;
+      }
+      body {
+        padding: 8px;
+      }
+      .head {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .head h2 {
+        margin: 6px 0;
+      }
+      .legend {
+        font-size: 12px;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+        margin-left: auto;
+      }
+      .legend div {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .box {
+        width: 10px;
+        height: 10px;
+        border: 1px solid #333;
+      }
+      .monthwrap {
+        margin-top: 8px;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+      .dayrow {
+        display: grid;
+        grid-template-columns: 74px auto;
+        gap: 6px;
+        align-items: center;
+      }
+      .grid48 {
+        display: grid;
+        grid-template-columns: repeat(24, 1fr);
+        gap: var(--grid-gap);
+      }
+      .cell {
+        height: var(--cell-h);
+        border: var(--cell-border);
+        border-radius: var(--cell-radius);
+      }
+      .muted {
+        color: #666;
+        font-size: 12px;
+      }
+      @media print {
+        body {
+          padding: 0;
+        }
+        .noprint {
+          display: none;
+        }
+        .legend,
+        .dayrow {
+          break-inside: avoid;
+          page-break-inside: avoid;
+        }
+      }
     </style>
   </head>
   <body>
     <div class="head">
       <h2 id="mtitle">月次一覧</h2>
       <div class="legend" id="legend"></div>
+      <label class="noprint" style="display: flex; align-items: center; gap: 6px">
+        サンプル
+        <select id="selSample">
+          <option value="0">実データ</option>
+          <option value="1">サンプル1: 標準勤務日</option>
+          <option value="2">サンプル2: 夜勤日</option>
+          <option value="3">サンプル3: 学習集中日</option>
+          <option value="4">サンプル4: 旅行日</option>
+          <option value="5">サンプル5: 家族・ケア日</option>
+          <option value="6">サンプル6: 回復（休養）日</option>
+        </select>
+      </label>
+      <label class="noprint" style="display: flex; align-items: center; gap: 6px">
+        配色
+        <select id="selPalette">
+          <option value="hc">高コントラスト</option>
+          <option value="mid" selected>ミドル（標準）</option>
+          <option value="pastel">淡色（旧配色）</option>
+        </select>
+      </label>
+      <label class="noprint" style="display: flex; align-items: center; gap: 6px">
+        高さ
+        <select id="selHeight">
+          <option value="10">10px（密）</option>
+          <option value="14" selected>14px（標準）</option>
+          <option value="18">18px（広）</option>
+          <option value="22">22px（特大）</option>
+        </select>
+      </label>
       <button class="noprint" id="btnPrint">印刷</button>
     </div>
-    <div class="muted">各行: 30分×24時間の概況（カテゴリパターン）。クリックで日次ページへ。</div>
+    <div class="muted" id="subtitle">
+      各行: 30分×24時間の概況（カテゴリパターン）。クリックで日次ページへ。
+    </div>
     <div class="monthwrap" id="monthwrap"></div>
     <script>
-      (async function(){
+      (async function () {
         const q = new URLSearchParams(location.search);
-        const m = q.get('month') || new Date().toISOString().slice(0,7);
+        const m = q.get('month') || new Date().toISOString().slice(0, 7);
+        const sampleId = parseInt(q.get('sample') || '0', 10) || 0;
+        const palQ = (q.get('pal') || '').toLowerCase();
+        const storedPal = localStorage.getItem('dailylog.pal') || '';
+        const palette = ['hc', 'mid', 'pastel'].includes(palQ)
+          ? palQ
+          : ['hc', 'mid', 'pastel'].includes(storedPal)
+            ? storedPal
+            : 'mid';
+        document.body.classList.toggle('palette-hc', palette === 'hc');
+        document.body.classList.toggle('palette-mid', palette === 'mid');
+        document.body.classList.toggle('palette-pastel', palette === 'pastel');
+        const hParam = parseInt(q.get('h') || '', 10);
+        const storedH = parseInt(localStorage.getItem('dailylog.cell_h') || '', 10);
+        const hPick = !Number.isNaN(hParam) ? hParam : !Number.isNaN(storedH) ? storedH : 14;
+        if (hPick >= 8 && hPick <= 28) {
+          document.documentElement.style.setProperty('--cell-h', hPick + 'px');
+        }
+        const useSample = sampleId > 0;
         document.getElementById('mtitle').textContent = `月次一覧 ${m}`;
-        const CATS = [['sleep','睡眠'],['work','仕事'],['study','勉強'],['move','移動'],['meal','食事'],['exercise','運動'],['house','家事'],['family','家族・ケア'],['rest','休憩'],['other','その他']];
+        const CATS = [
+          ['sleep', '睡眠'],
+          ['work', '仕事'],
+          ['study', '勉強'],
+          ['move', '移動'],
+          ['meal', '食事'],
+          ['exercise', '運動'],
+          ['house', '家事'],
+          ['family', '家族・ケア'],
+          ['rest', '休憩'],
+          ['other', 'その他'],
+        ];
         const lg = document.getElementById('legend');
-        for(const [v,lab] of CATS){ const dv=document.createElement('div'); const bx=document.createElement('span'); bx.className='box cat-'+v; dv.appendChild(bx); const sp=document.createElement('span'); sp.textContent=lab; dv.appendChild(sp); lg.appendChild(dv);}        
+        for (const [v, lab] of CATS) {
+          const dv = document.createElement('div');
+          const bx = document.createElement('span');
+          bx.className = 'box cat-' + v;
+          dv.appendChild(bx);
+          const sp = document.createElement('span');
+          sp.textContent = lab;
+          dv.appendChild(sp);
+          lg.appendChild(dv);
+        }
 
-        function daysInMonth(ym){
-          const [Y,MM] = ym.split('-').map(Number);
+        function daysInMonth(ym) {
+          const [Y, MM] = ym.split('-').map(Number);
           const last = new Date(Y, MM, 0).getDate();
-          const out=[]; for(let d=1; d<=last; d++){ out.push(`${ym}-${String(d).padStart(2,'0')}`); } return out;
+          const out = [];
+          for (let d = 1; d <= last; d++) {
+            out.push(`${ym}-${String(d).padStart(2, '0')}`);
+          }
+          return out;
+        }
+        function range(a, b) {
+          const out = [];
+          for (let i = a; i < b; i++) out.push(i);
+          return out;
+        }
+        const slot = (h, m) => h * 2 + (m >= 30 ? 1 : 0);
+        function samplePlanForDay(d, sample) {
+          const acts = [];
+          const push = (start, end, cat, label) => {
+            for (let i = start; i < end; i++) {
+              acts.push({ slot: i, label, category: cat });
+            }
+          };
+          const PB = (h1, m1, h2, m2, cat, label) => push(slot(h1, m1), slot(h2, m2), cat, label);
+          switch (sample) {
+            case 1: // 標準勤務日
+              PB(0, 0, 6, 30, 'sleep', '睡眠');
+              PB(6, 30, 7, 30, 'house', '家事');
+              PB(7, 30, 9, 0, 'move', '移動');
+              PB(9, 0, 12, 0, 'work', '仕事');
+              PB(12, 0, 13, 0, 'meal', '食事');
+              PB(13, 0, 17, 0, 'work', '仕事');
+              PB(17, 0, 18, 30, 'study', '勉強');
+              PB(18, 30, 19, 30, 'exercise', '運動');
+              PB(19, 30, 21, 0, 'family', '家族・ケア');
+              PB(21, 0, 22, 0, 'meal', '食事');
+              PB(22, 0, 23, 0, 'rest', '休憩');
+              PB(23, 0, 24, 0, 'sleep', '睡眠');
+              break;
+            case 2: // 夜勤日
+              PB(0, 0, 6, 0, 'work', '仕事');
+              PB(6, 0, 7, 0, 'move', '移動');
+              PB(7, 0, 14, 30, 'sleep', '睡眠');
+              PB(14, 30, 15, 30, 'meal', '食事');
+              PB(15, 30, 17, 0, 'house', '家事');
+              PB(17, 0, 20, 0, 'family', '家族・ケア');
+              PB(20, 0, 21, 0, 'meal', '食事');
+              PB(21, 0, 24, 0, 'work', '仕事');
+              break;
+            case 3: // 学習集中日
+              PB(0, 0, 7, 0, 'sleep', '睡眠');
+              PB(7, 0, 8, 0, 'house', '家事');
+              PB(8, 0, 9, 0, 'move', '移動');
+              PB(9, 0, 12, 0, 'study', '勉強');
+              PB(12, 0, 13, 0, 'meal', '食事');
+              PB(13, 0, 17, 0, 'study', '勉強');
+              PB(17, 0, 18, 0, 'exercise', '運動');
+              PB(18, 0, 19, 0, 'move', '移動');
+              PB(19, 0, 20, 0, 'meal', '食事');
+              PB(20, 0, 22, 0, 'study', '勉強');
+              PB(22, 0, 24, 0, 'rest', '休憩');
+              break;
+            case 4: // 旅行日
+              PB(0, 0, 5, 0, 'sleep', '睡眠');
+              PB(5, 0, 6, 0, 'house', '家事');
+              PB(6, 0, 12, 0, 'move', '移動');
+              PB(12, 0, 13, 0, 'meal', '食事');
+              PB(13, 0, 17, 0, 'move', '移動');
+              PB(17, 0, 18, 0, 'rest', '休憩');
+              PB(18, 0, 19, 0, 'meal', '食事');
+              PB(19, 0, 21, 0, 'family', '家族・ケア');
+              PB(21, 0, 24, 0, 'sleep', '睡眠');
+              break;
+            case 5: // 家族・ケア日
+              PB(0, 0, 6, 30, 'sleep', '睡眠');
+              PB(6, 30, 8, 0, 'house', '家事');
+              PB(8, 0, 12, 0, 'family', '家族・ケア');
+              PB(12, 0, 13, 0, 'meal', '食事');
+              PB(13, 0, 16, 0, 'family', '家族・ケア');
+              PB(16, 0, 17, 0, 'move', '移動');
+              PB(17, 0, 18, 0, 'exercise', '運動');
+              PB(18, 0, 20, 0, 'family', '家族・ケア');
+              PB(20, 0, 21, 0, 'meal', '食事');
+              PB(21, 0, 22, 0, 'house', '家事');
+              PB(22, 0, 24, 0, 'rest', '休憩');
+              break;
+            case 6: // 回復（休養）日
+              PB(0, 0, 9, 0, 'sleep', '睡眠');
+              PB(9, 0, 10, 0, 'meal', '食事');
+              PB(10, 0, 12, 0, 'rest', '休憩');
+              PB(12, 0, 13, 0, 'meal', '食事');
+              PB(13, 0, 15, 0, 'rest', '休憩');
+              PB(15, 0, 16, 0, 'exercise', '運動');
+              PB(16, 0, 18, 0, 'rest', '休憩');
+              PB(18, 0, 19, 0, 'meal', '食事');
+              PB(19, 0, 24, 0, 'sleep', '睡眠');
+              break;
+            default:
+              return samplePlanForDay(d, 1);
+          }
+          return acts;
         }
         const container = document.getElementById('monthwrap');
-        for(const d of daysInMonth(m)){
-          const r = await fetch(`api/day?date=${d}`);
-          const j = await r.json();
-          const row=document.createElement('div'); row.className='dayrow';
-          const label=document.createElement('div'); label.textContent=d; label.className='muted'; row.appendChild(label);
-          const grid=document.createElement('div'); grid.className='grid48';
-          const bySlot=new Map((j.activities||[]).map(a=>[a.slot,a]));
-          for(let i=0;i<48;i++){ const c=document.createElement('div'); c.className='cell'; const a=bySlot.get(i); const cat=(a?.category)||'other'; c.classList.add('cat-'+cat); c.title=String(a?.label||''); grid.appendChild(c);}          
+        for (const d of daysInMonth(m)) {
+          let j;
+          if (useSample) {
+            j = { activities: samplePlanForDay(d, sampleId) };
+          } else {
+            const r = await fetch(`api/day?date=${d}`);
+            j = await r.json();
+          }
+          const row = document.createElement('div');
+          row.className = 'dayrow';
+          const label = document.createElement('div');
+          label.textContent = d;
+          label.className = 'muted';
+          row.appendChild(label);
+          const grid = document.createElement('div');
+          grid.className = 'grid48';
+          const bySlot = new Map((j.activities || []).map((a) => [a.slot, a]));
+          for (let i = 0; i < 48; i++) {
+            const c = document.createElement('div');
+            c.className = 'cell';
+            const a = bySlot.get(i);
+            const cat = a?.category || 'other';
+            c.classList.add('cat-' + cat);
+            c.title = String(a?.label || '');
+            grid.appendChild(c);
+          }
           row.appendChild(grid);
-          row.addEventListener('click', ()=>{ window.open(`./?date=${d}`,'_blank'); });
+          row.addEventListener('click', () => {
+            const u = new URL('./', location.href);
+            u.searchParams.set('date', d);
+            u.searchParams.set('pal', palette);
+            window.open(u.toString(), '_blank');
+          });
           container.appendChild(row);
         }
-        document.getElementById('btnPrint').addEventListener('click', ()=> window.print());
+        const SAMPLE_META = {
+          1: { t: '標準勤務日', d: '日勤・移動・運動・家族・食事がバランス' },
+          2: { t: '夜勤日', d: '深夜～早朝が仕事、昼間に睡眠' },
+          3: { t: '学習集中日', d: '日中と夜に学習ブロックが長い' },
+          4: { t: '旅行日', d: '移動が長時間を占める' },
+          5: { t: '家族・ケア日', d: '家族・ケアの帯が主' },
+          6: { t: '回復（休養）日', d: '睡眠と休憩が多め、軽い運動' },
+        };
+        const sel = document.getElementById('selSample');
+        sel.value = String(sampleId);
+        sel.addEventListener('change', () => {
+          const u = new URL(location.href);
+          u.searchParams.set('sample', sel.value);
+          location.href = u.toString();
+        });
+        const selPal = document.getElementById('selPalette');
+        selPal.value = palette;
+        function applyPalette(p) {
+          document.body.classList.toggle('palette-hc', p === 'hc');
+          document.body.classList.toggle('palette-mid', p === 'mid');
+          document.body.classList.toggle('palette-pastel', p === 'pastel');
+          if (p === 'hc') {
+            document.documentElement.style.setProperty('--grid-gap', '2px');
+            document.documentElement.style.setProperty('--cell-border', '0');
+            document.documentElement.style.setProperty('--cell-radius', '2px');
+          } else if (p === 'mid') {
+            document.documentElement.style.setProperty('--grid-gap', '2px');
+            document.documentElement.style.setProperty('--cell-border', '0');
+            document.documentElement.style.setProperty('--cell-radius', '2px');
+          } else {
+            document.documentElement.style.setProperty('--grid-gap', '1px');
+            document.documentElement.style.setProperty('--cell-border', '1px solid #ccc');
+            document.documentElement.style.setProperty('--cell-radius', '0');
+          }
+        }
+        applyPalette(palette);
+        selPal.addEventListener('change', () => {
+          applyPalette(selPal.value);
+          localStorage.setItem('dailylog.pal', selPal.value);
+          const u = new URL(location.href);
+          u.searchParams.set('pal', selPal.value);
+          history.replaceState(null, '', u.toString());
+        });
+        const selH = document.getElementById('selHeight');
+        const currentH = getComputedStyle(document.documentElement)
+          .getPropertyValue('--cell-h')
+          .trim()
+          .replace('px', '');
+        if (currentH) selH.value = currentH;
+        selH.addEventListener('change', () => {
+          document.documentElement.style.setProperty('--cell-h', selH.value + 'px');
+          localStorage.setItem('dailylog.cell_h', selH.value);
+          const u = new URL(location.href);
+          u.searchParams.set('h', selH.value);
+          history.replaceState(null, '', u.toString());
+        });
+        if (useSample) {
+          const meta = SAMPLE_META[sampleId];
+          const palLabel =
+            palette === 'hc' ? '高コントラスト' : palette === 'mid' ? 'ミドル' : '淡色（旧配色）';
+          document.getElementById('subtitle').textContent =
+            `サンプル${sampleId}: ${meta?.t}（${meta?.d}）｜配色: ${palLabel} - DB不要のモック表示`;
+        }
+        document.getElementById('btnPrint').addEventListener('click', () => window.print());
       })();
     </script>
   </body>
-  </html>
-
+</html>

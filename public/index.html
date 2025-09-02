@@ -116,6 +116,20 @@
 
     <script>
       (function () {
+        // 配色パレットの適用（URL > localStorage > 既定: mid）
+        try {
+          const q = new URLSearchParams(location.search);
+          const palQ = (q.get('pal') || '').toLowerCase();
+          const stPal = localStorage.getItem('dailylog.pal') || '';
+          const palette = ['hc', 'mid', 'pastel'].includes(palQ)
+            ? palQ
+            : ['hc', 'mid', 'pastel'].includes(stPal)
+              ? stPal
+              : 'mid';
+          document.body.classList.toggle('palette-hc', palette === 'hc');
+          document.body.classList.toggle('palette-mid', palette === 'mid');
+          document.body.classList.toggle('palette-pastel', palette === 'pastel');
+        } catch (_) {}
         const dateEl = document.getElementById('date');
         const weekdayEl = document.getElementById('weekday');
         const slotBodyL = document.getElementById('slotBodyL');
