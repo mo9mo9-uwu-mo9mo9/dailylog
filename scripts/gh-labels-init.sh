@@ -38,6 +38,6 @@ ensure_label "type:infra"   0052CC "インフラ/環境/CI"
 ensure_label "type:test"    5319E7 "テスト/品質"
 ensure_label "type:bug"     D73A4A "不具合修正"
 ensure_label "type:docs"    1D76DB "ドキュメント"
+ensure_label "codex:review"  BFDADC "Codex レビューの手動依頼に使用"
 
 echo "==> 完了しました"
-
