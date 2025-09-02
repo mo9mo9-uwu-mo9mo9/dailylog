@@ -15,6 +15,7 @@
         --col-date: 36px; /* DD 2桁 */
         --col-metrics: 150px;
         --col-note: 220px;
+        --row-sep-color: #e5e5e5; /* 行の区切り線（画面） */
       }
       body {
         padding: 8px;
@@ -59,6 +60,11 @@
           );
         gap: 6px;
         align-items: center;
+        padding: 2px 0;
+        border-bottom: 1px solid var(--row-sep-color);
+      }
+      .monthwrap .dayrow:first-child {
+        border-top: 1px solid var(--row-sep-color);
       }
       .daydate {
         display: flex;
@@ -113,6 +119,20 @@
         .metrics,
         .note {
           font-size: 12px; /* 印刷時も視認性を維持 */
+        }
+        /* 印刷時: 行罫線を強調、背景は無効化 */
+        .dayrow {
+          background: none !important;
+          border-bottom: 0.2mm solid #000;
+        }
+        .monthwrap .dayrow:first-child {
+          border-top: 0.2mm solid #000;
+        }
+      }
+      @media screen {
+        /* 画面では薄いゼブラ背景でトラッキングしやすく */
+        .dayrow:nth-child(odd) {
+          background: #fafafa;
         }
       }
     </style>
