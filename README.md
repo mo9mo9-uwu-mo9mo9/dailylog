@@ -78,13 +78,34 @@ npx vitest -r
 ## 貢献ガイド
 
 - コーディング/命名/PR ルールは [AGENTS.md](AGENTS.md) を参照。
+- 本プロジェクトでは GitHub CLI（`gh`）の利用を標準とします（Issue/PR/レビュー操作）。初回は `gh auth login`、以降は `gh auth status` で確認してください。
 - ドキュメント命名は `<分類>_<番号>_<タイトル>_v_<整数>.md` を推奨（保管は `tmp/docs/`）。
+
+### Issue ラベル（必須）
+
+- すべての Issue に `priority:P0` または `priority:P1` を必ず付与し、`type:*` ラベル（例: `type:feature`）を少なくとも1つ併記します。
+- ラベルが存在しない場合は作成してください。初回は `scripts/gh-labels-init.sh` を実行すると標準セットを自動作成します（冪等）。
+- 例（作成と起票）:
+
+```bash
+scripts/gh-labels-init.sh
+gh issue create \
+  --title "feat: 〇〇を追加" \
+  --body  "背景/方針/受け入れ基準（日本語）" \
+  --label "priority:P1" --label "type:feature"
+```
 
 ## 運用（参考）
 
 - 本番は N100 サーバ（Ubuntu）上で `systemd` 常駐、公開は Tailscale Funnel を使用。
 - サービス名: `dailylog.service`、作業ディレクトリ: `/srv/dailylog`。
 - 再起動: `sudo systemctl restart dailylog`、疎通: `curl -u $AUTH_USER:$AUTH_PASS http://127.0.0.1:$PORT/api/health`。
+
+### Runner 設定ファイル（ローカル機密設定）
+
+- 読み込み優先: `local/runner.env` → （後方互換）`tmp/local/runner.env`。
+- `tmp/local/runner.env` は廃止予定です。`local/runner.env` に移行してください。
+- `local/` は `.gitignore` 済み（Git 管理外）。
 
 ## ライセンス
 

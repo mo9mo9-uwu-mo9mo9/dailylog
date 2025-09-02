@@ -30,6 +30,15 @@
 - **PR 要件**: 目的・背景、変更点、関連Issue、スクリーンショット/ログ、テスト観点。CI緑（lint/format/test 通過）が前提。
 - **レビュー**: 差分は読みやすく。破壊的変更は `BREAKING CHANGE:` を記載。
 
+## Issue 運用ルール（重要・明文化）
+
+- **優先度ラベルは必須**: すべての Issue に `priority:P0` または `priority:P1` を必ず付与する。
+  - `P0`: 最優先（MVP必須）。
+  - `P1`: 優先（MVP後すぐ）。
+- **分類ラベルの付与**: `type:feature` / `type:infra` / `type:test` などの種別ラベルを併記する。
+- **完了時のクローズ**: 実装が main に取り込まれたら、根拠（PR/コミット/確認結果）をコメントして Close。
+- **不要Issueの整理**: 仕様変更等で不要になった場合は根拠を明記して Close。
+
 ## コミュニケーション言語（重要）
 
 - 本リポジトリの Issue / PR / コミットメッセージ / ドキュメント / やり取りは、原則として「日本語のみ」を使用します（英語不可）。
@@ -43,6 +52,98 @@
   - まず実現方法を分析し、方針・影響範囲・受け入れ基準を整理した「Issue」を必ず作成する。
   - Issue のレビュー（必要なら質疑）後に、当該 Issue に基づく PR を作成する。
   - 一気に実装に着手（直接コミット/PR）するのはNG。
+
+## GitHub CLI（gh）の利用方針（重要・明文化）
+
+- 本プロジェクトの Issue/PR/レビュー操作は、原則として GitHub CLI `gh` を使用します（UI 操作可だが既定は gh）。
+- 事前条件: `gh auth status` でログイン済みであること（必要なら `gh auth login`）。
+
+### よく使うコマンド例
+
+```bash
+# Issue 作成（必ず優先度＋種別ラベルを付与）
+gh issue create \
+  --title "feat: 〇〇を追加" \
+  --body  "背景/方針/受け入れ基準を日本語で記載" \
+  --label "priority:P1" --label "type:feature"
+
+# 既存 Issue にラベル追加
+gh issue edit <番号> --add-label "priority:P0,type:infra"
+
+# PR 作成（本文に関連 Issue を必ず明記）
+gh pr create \
+  --base main --head <topic-branch> \
+  --title "feat: 〇〇を実装" \
+  --body  $'関連 Issue: #<番号>\n\n概要/方針/受け入れ基準を日本語で記載'
+
+# CI は PR 本文/タイトルに Issue 参照が無いと失敗（.github/workflows/pr-issue-check.yml）
+
+# PR レビュー状況の確認
+gh pr view --web    # ブラウザで開く
+gh pr checks        # CI 状況
+
+# マージ（Squash＋ブランチ削除を既定とする）
+gh pr merge --squash --delete-branch
+
+# マージ後の Issue クローズ（根拠をコメント）
+gh issue close <番号> \
+  --comment "PR #<PR番号> を main にマージ済み。受け入れ基準を満たすことを確認し Close。"
+
+# 参考: ラベルの作成（初回のみ、権限保持者が実施）
+gh label create "priority:P0" --color FF0000 --description "最優先（MVP必須）"
+gh label create "priority:P1" --color FFA500 --description "優先（MVP後すぐ）"
+```
+
+- すべてのコミュニケーション（Issue/PR/コメント/本文/コミットメッセージ）は日本語で記載してください。
+- `main` 直コミットは禁止。必ず Issue 起票 → ブランチ → PR（gh）で進めてください。
+
+### ラベル運用の明文化（必須）
+
+- すべての Issue は作成時点で以下を必ず付与する:
+  - 優先度: `priority:P0` または `priority:P1`（必須・いずれか1つ）
+  - 種別: `type:feature` / `type:infra` / `type:test` など（少なくとも1つ）
+- ラベルがリポジトリに存在しない場合は、その場で作成すること（`gh label create`）。権限保持者は初回に標準セットを作成してください。
+- 補助スクリプト: `scripts/gh-labels-init.sh` を用意しています。初回または不足時に実行してください。
+
+```bash
+# 例: ラベルが無い場合に作成してから Issue を起票
+scripts/gh-labels-init.sh
+gh issue create \
+  --title "feat: 〇〇を追加" \
+  --body  "背景/方針/受け入れ基準（日本語）" \
+  --label "priority:P1" --label "type:feature"
+```
+
+### PR マージ後の運用（main チェックアウトとブランチ整理）
+
+- PR を `main` にマージしたら、ローカルで `main` にチェックアウトして最新化し、マージ済みブランチを整理することを明文化する。
+- 手順（Squash Merge 推奨の前提）:
+
+  1) 取得と `main` 最新化
+
+  ```bash
+  git fetch origin
+  git checkout main
+  git pull --ff-only
+  ```
+
+  2) マージ済みトピックブランチの削除（ローカル／リモート）
+
+  ```bash
+  # ローカル削除（未マージの場合は失敗する）
+  git branch -d <topic-branch>
+
+  # リモート削除（または GitHub の「Delete branch」ボタン）
+  git push origin --delete <topic-branch>
+
+  # 追跡ブランチの掃除（任意）
+  git fetch -p
+  ```
+
+- 注意:
+  - 未マージブランチは `-d` では削除されない。強制削除（`-D`）は原則禁止。必要時は合意のうえで実施。
+  - リリースタグ等が必要な場合はタグ付け後に削除すること。
+  - `main` 直コミットは禁止（ブランチ保護）。
 
 ## セキュリティ/設定のヒント（任意）
 
