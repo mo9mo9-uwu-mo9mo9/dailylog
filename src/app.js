@@ -223,10 +223,7 @@ function createApp(opts = {}) {
 
     const csv = rows.join('\n');
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="dailylog_${m}.csv"`
-    );
+    res.setHeader('Content-Disposition', `attachment; filename="dailylog_${m}.csv"`);
     res.send(csv);
   });
 
