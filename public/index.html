@@ -121,7 +121,11 @@
           const q = new URLSearchParams(location.search);
           const palQ = (q.get('pal') || '').toLowerCase();
           const stPal = localStorage.getItem('dailylog.pal') || '';
-          const palette = ['hc','mid','pastel'].includes(palQ) ? palQ : (['hc','mid','pastel'].includes(stPal) ? stPal : 'mid');
+          const palette = ['hc', 'mid', 'pastel'].includes(palQ)
+            ? palQ
+            : ['hc', 'mid', 'pastel'].includes(stPal)
+              ? stPal
+              : 'mid';
           document.body.classList.toggle('palette-hc', palette === 'hc');
           document.body.classList.toggle('palette-mid', palette === 'mid');
           document.body.classList.toggle('palette-pastel', palette === 'pastel');
