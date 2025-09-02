@@ -14,6 +14,7 @@
         /* 4カラム用の列幅（調整しやすいようにCSS変数化） */
         --col-date: 36px; /* DD 2桁 */
         --col-metrics: 150px;
+        --col-note: 220px;
       }
       body {
         padding: 8px;
@@ -51,7 +52,11 @@
       }
       .dayrow {
         display: grid;
-        grid-template-columns: var(--col-date) auto var(--col-metrics) 1fr; /* |日付|グラフ|指標|備考| */
+        /* auto トラックが縮み過ぎてグラフが0幅になるのを防ぐため minmax を使用 */
+        grid-template-columns: var(--col-date) minmax(320px, 1fr) var(--col-metrics) minmax(
+            var(--col-note),
+            1fr
+          );
         gap: 6px;
         align-items: center;
       }
