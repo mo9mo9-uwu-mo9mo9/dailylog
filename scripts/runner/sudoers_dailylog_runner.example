@@ -1,0 +1,6 @@
+# Place as /etc/sudoers.d/dailylog-runner (via visudo -f ...)
+# Grants minimal permission for GitHub Runner to restart/check the service.
+
+Defaults:dailylog !requiretty
+dailylog ALL=(root) NOPASSWD: /usr/bin/systemctl restart dailylog, /usr/bin/systemctl is-active dailylog
+

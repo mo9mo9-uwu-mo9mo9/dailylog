@@ -86,6 +86,21 @@ npx vitest -r
 - サービス名: `dailylog.service`、作業ディレクトリ: `/srv/dailylog`。
 - 再起動: `sudo systemctl restart dailylog`、疎通: `curl -u $AUTH_USER:$AUTH_PASS http://127.0.0.1:$PORT/api/health`。
 
+### Self-hosted Runner（デプロイ用）
+
+- ラベル: `dailylog-prod`。ワークフロー `.github/workflows/deploy.yml` は `[self-hosted, dailylog-prod]` を要求。
+- 導入手順（要 Registration Token）:
+  1) サーバに `dailylog` ユーザーを用意し、`/srv` に配置
+  2) `scripts/runner/sudoers_dailylog_runner.example` を参考に sudoers を設定（最小権限）
+  3) `RUNNER_TOKEN=xxxx sudo -u dailylog bash scripts/runner/bootstrap-self-hosted.sh`
+  4) GitHub の Runners に `n100ubuntu-dailylog` が Online で表示されることを確認
+  5) `workflow_dispatch` で「Deploy (production)」を試行
+
+### systemd ユニット例
+
+- `scripts/systemd/dailylog.service.example` を `/etc/systemd/system/dailylog.service` に配置・調整。
+- `sudo systemctl daemon-reload && sudo systemctl enable --now dailylog`。
+
 ## ライセンス
 
 未定（必要に応じて追記）。
