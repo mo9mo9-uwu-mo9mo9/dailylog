@@ -48,9 +48,30 @@
       }
       .dayrow {
         display: grid;
-        grid-template-columns: 74px auto;
+        /* 指標表示のためラベル幅を拡張（印刷最適化は別Issue #56で対応） */
+        grid-template-columns: 150px auto;
         gap: 6px;
         align-items: center;
+      }
+      .daylabel {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        height: var(--cell-h);
+        line-height: var(--cell-h);
+        overflow: hidden;
+      }
+      .daylabel .date {
+        font-weight: 600;
+        font-size: 12px;
+        color: #444;
+      }
+      .daylabel .metrics {
+        font-size: 10px;
+        color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .grid48 {
         display: grid;
@@ -279,10 +300,39 @@
           }
           const row = document.createElement('div');
           row.className = 'dayrow';
-          const label = document.createElement('div');
-          label.textContent = d;
-          label.className = 'muted';
-          row.appendChild(label);
+          // ラベル＋指標（睡眠/疲労/気分/メモ）
+          const labelWrap = document.createElement('div');
+          labelWrap.className = 'daylabel';
+          const dateEl = document.createElement('div');
+          dateEl.className = 'date';
+          dateEl.textContent = d;
+          labelWrap.appendChild(dateEl);
+          const metricsEl = document.createElement('div');
+          metricsEl.className = 'metrics';
+          if (!useSample) {
+            const mm = Number(j?.sleep_minutes || 0);
+            const f = j?.fatigue || {};
+            const mmm = j?.mood || {};
+            const nt = String(j?.note || '').trim();
+            const parts = [];
+            if (mm > 0) parts.push(`睡${toHM(mm)}`);
+            const fSum = (f.morning | 0) + (f.noon | 0) + (f.night | 0);
+            if (fSum > 0) parts.push(`疲${f.morning | 0}/${f.noon | 0}/${f.night | 0}`);
+            const mSum = (mmm.morning | 0) + (mmm.noon | 0) + (mmm.night | 0);
+            if (mSum > 0) parts.push(`気${mmm.morning | 0}/${mmm.noon | 0}/${mmm.night | 0}`);
+            if (nt.length > 0) parts.push('📝');
+            metricsEl.textContent = parts.join(' ');
+            // ツールチップ用に詳細も付与
+            if (parts.length > 0) {
+              metricsEl.title = `睡眠:${mm > 0 ? toHM(mm) : '-'} / 疲労:${f.morning | 0}/${
+                f.noon | 0
+              }/${f.night | 0} / 気分:${mmm.morning | 0}/${mmm.noon | 0}/${
+                mmm.night | 0
+              }${nt ? ' / メモあり' : ''}`;
+            }
+          }
+          labelWrap.appendChild(metricsEl);
+          row.appendChild(labelWrap);
           const grid = document.createElement('div');
           grid.className = 'grid48';
           const bySlot = new Map((j.activities || []).map((a) => [a.slot, a]));
@@ -369,6 +419,13 @@
         }
         document.getElementById('btnPrint').addEventListener('click', () => window.print());
       })();
+
+      // --- helpers ---
+      function toHM(mins) {
+        const h = Math.floor(mins / 60);
+        const m2 = mins % 60;
+        return `${h}:${String(m2).padStart(2, '0')}`;
+      }
     </script>
   </body>
 </html>
