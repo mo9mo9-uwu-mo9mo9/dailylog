@@ -28,7 +28,7 @@ function openDb(dbFile) {
       db.pragma('journal_mode = WAL');
       db.pragma('synchronous = NORMAL');
     }
-  } catch (_) {
+  } catch {
     // Ignore pragma errors in test environments
   }
   return db;
@@ -63,7 +63,7 @@ function initDb(dbFile) {
     if (!cols.some((c) => c.name === 'category')) {
       db.exec("ALTER TABLE activities ADD COLUMN category TEXT DEFAULT ''");
     }
-  } catch (_) {}
+  } catch {}
   return db;
 }
 
