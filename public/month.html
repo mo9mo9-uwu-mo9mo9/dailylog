@@ -51,6 +51,58 @@
         grid-template-columns: 1fr;
         gap: 6px;
       }
+      /* 列見出し */
+      .colhead {
+        display: grid;
+        grid-template-columns: var(--col-date) minmax(320px, 1fr) var(--col-metrics) minmax(
+            var(--col-note),
+            1fr
+          );
+        gap: 6px;
+        align-items: center;
+        font-size: 12px;
+        color: #333;
+        margin-top: 6px;
+        border-bottom: 1px solid var(--row-sep-color, #e5e5e5);
+        padding-bottom: 4px;
+      }
+      .colhead div {
+        font-weight: 700;
+      }
+      /* 時間目盛り（グラフの時間軸） */
+      .timescale {
+        display: grid;
+        grid-template-columns: var(--col-date) minmax(320px, 1fr) var(--col-metrics) minmax(
+            var(--col-note),
+            1fr
+          );
+        gap: 6px;
+        align-items: center;
+        color: #666;
+        font-size: 11px;
+      }
+      .timegrid {
+        display: grid;
+        grid-template-columns: repeat(24, 1fr);
+        column-gap: var(--grid-gap);
+        height: 16px;
+        align-items: end;
+      }
+      .timegrid .tick {
+        position: relative;
+        border-left: 1px solid #ddd;
+        height: 12px;
+      }
+      .timegrid .tick.major {
+        border-left-color: #aaa;
+        height: 14px;
+      }
+      .timegrid .tick .lab {
+        position: absolute;
+        bottom: 0;
+        transform: translateX(-50%);
+        left: 0;
+      }
       .dayrow {
         display: grid;
         /* auto トラックが縮み過ぎてグラフが0幅になるのを防ぐため minmax を使用 */
@@ -175,6 +227,20 @@
     <div class="muted" id="subtitle">
       各行: 30分×24時間の概況（カテゴリパターン）。クリックで日次ページへ。
     </div>
+    <div class="colhead" aria-hidden="false">
+      <div>日付</div>
+      <div>グラフ</div>
+      <div>指標</div>
+      <div>備考</div>
+    </div>
+    <div class="timescale" aria-hidden="false">
+      <div></div>
+      <div>
+        <div class="timegrid" id="timegrid"></div>
+      </div>
+      <div></div>
+      <div></div>
+    </div>
     <div class="monthwrap" id="monthwrap"></div>
     <script>
       (async function () {
@@ -221,6 +287,21 @@
           sp.textContent = lab;
           dv.appendChild(sp);
           lg.appendChild(dv);
+        }
+        // 時間目盛り（0..23h, 6時間ごとにラベル）
+        const tg = document.getElementById('timegrid');
+        if (tg) {
+          for (let h = 0; h < 24; h++) {
+            const tk = document.createElement('div');
+            tk.className = 'tick' + (h % 6 === 0 ? ' major' : '');
+            if (h % 6 === 0) {
+              const lab = document.createElement('span');
+              lab.className = 'lab';
+              lab.textContent = String(h).padStart(2, '0') + ':00';
+              tk.appendChild(lab);
+            }
+            tg.appendChild(tk);
+          }
         }
 
         function daysInMonth(ym) {
