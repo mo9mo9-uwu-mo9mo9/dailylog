@@ -11,6 +11,9 @@
         --grid-gap: 2px;
         --cell-radius: 2px;
         --cell-border: 0;
+        /* 4カラム用の列幅（調整しやすいようにCSS変数化） */
+        --col-date: 36px; /* DD 2桁 */
+        --col-metrics: 150px;
       }
       body {
         padding: 8px;
@@ -48,27 +51,30 @@
       }
       .dayrow {
         display: grid;
-        /* 指標の可読性向上のためラベル列を広げ、グラフ横幅を抑える */
-        grid-template-columns: 180px auto;
+        grid-template-columns: var(--col-date) auto var(--col-metrics) 1fr; /* |日付|グラフ|指標|備考| */
         gap: 6px;
         align-items: center;
       }
-      .daylabel {
+      .daydate {
         display: flex;
         align-items: center;
-        gap: 6px;
+        justify-content: center;
         height: var(--cell-h);
         line-height: var(--cell-h);
-        overflow: hidden;
-      }
-      .daylabel .date {
         font-weight: 600;
-        font-size: 12px; /* 日付は2桁表示のため12pxで十分 */
+        font-size: 12px;
         color: #444;
       }
-      .daylabel .metrics {
-        font-size: 12px; /* 可読性向上 */
-        color: #666;
+      .metrics {
+        font-size: 12px;
+        color: #333;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .note {
+        font-size: 12px;
+        color: #444;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -99,7 +105,8 @@
           break-inside: avoid;
           page-break-inside: avoid;
         }
-        .daylabel .metrics {
+        .metrics,
+        .note {
           font-size: 12px; /* 印刷時も視認性を維持 */
         }
       }
@@ -355,15 +362,26 @@
           }
           const row = document.createElement('div');
           row.className = 'dayrow';
-          // ラベル＋指標（睡眠/疲労/気分/メモ）
-          const labelWrap = document.createElement('div');
-          labelWrap.className = 'daylabel';
+          // 1列目: 日付（DD のみ表示）
           const dateEl = document.createElement('div');
-          dateEl.className = 'date';
-          // 年月は見出しに出ているため、日付のみ（DD）を表示
+          dateEl.className = 'daydate';
           dateEl.textContent = d.slice(8, 10);
-          dateEl.title = d; // ホバーでフル表示
-          labelWrap.appendChild(dateEl);
+          dateEl.title = d; // フル日付
+          row.appendChild(dateEl);
+          const grid = document.createElement('div');
+          grid.className = 'grid48';
+          const bySlot = new Map((j.activities || []).map((a) => [a.slot, a]));
+          for (let i = 0; i < 48; i++) {
+            const c = document.createElement('div');
+            c.className = 'cell';
+            const a = bySlot.get(i);
+            const cat = a?.category || 'other';
+            c.classList.add('cat-' + cat);
+            c.title = String(a?.label || '');
+            grid.appendChild(c);
+          }
+          row.appendChild(grid);
+          // 3列目: 指標
           const metricsEl = document.createElement('div');
           metricsEl.className = 'metrics';
           const mm = Number(j?.sleep_minutes || 0);
@@ -378,7 +396,6 @@
           if (mSum > 0) parts.push(`気${mmm.morning | 0}/${mmm.noon | 0}/${mmm.night | 0}`);
           if (nt.length > 0) parts.push('📝');
           metricsEl.textContent = parts.join(' ');
-          // ツールチップ用に詳細も付与
           if (parts.length > 0) {
             metricsEl.title = `睡眠:${mm > 0 ? toHM(mm) : '-'} / 疲労:${f.morning | 0}/${
               f.noon | 0
@@ -386,21 +403,13 @@
               mmm.night | 0
             }${nt ? ' / メモあり' : ''}`;
           }
-          labelWrap.appendChild(metricsEl);
-          row.appendChild(labelWrap);
-          const grid = document.createElement('div');
-          grid.className = 'grid48';
-          const bySlot = new Map((j.activities || []).map((a) => [a.slot, a]));
-          for (let i = 0; i < 48; i++) {
-            const c = document.createElement('div');
-            c.className = 'cell';
-            const a = bySlot.get(i);
-            const cat = a?.category || 'other';
-            c.classList.add('cat-' + cat);
-            c.title = String(a?.label || '');
-            grid.appendChild(c);
-          }
-          row.appendChild(grid);
+          row.appendChild(metricsEl);
+          // 4列目: 備考（note）
+          const noteEl = document.createElement('div');
+          noteEl.className = 'note';
+          noteEl.textContent = nt;
+          noteEl.title = nt;
+          row.appendChild(noteEl);
           row.addEventListener('click', () => {
             const u = new URL('./', location.href);
             u.searchParams.set('date', d);
