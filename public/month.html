@@ -304,51 +304,121 @@
           }
           return acts;
         }
-        function sampleMetricsForDay(sample) {
+        function sampleMetricsForDay(d, sample) {
           // サンプル用のダミー指標（概ねパターンに沿った値）
+          const dd = Number(d.slice(8, 10));
+          const pick = (arr) => arr[(dd - 1) % arr.length];
           switch (sample) {
-            case 1: // 標準勤務日
+            case 1: {
+              const notes = [
+                '在宅: 朝会・1on1',
+                '出社: 進捗レビュー',
+                '要件定義メモ更新',
+                '資料作成: 提案ドラフト',
+                '残業1h: リリース準備',
+                '出張手配・精算',
+                '雑務消化・ヘルプ対応',
+              ];
+              let note = pick(notes);
+              if (dd % 7 === 0)
+                note =
+                  '長文: 部署横断ミーティング議事要約。決定事項/宿題/期限を整理し関係者へ共有。';
+              if (dd % 5 === 0) note = '';
               return {
                 sleep_minutes: 6 * 60 + 30,
                 fatigue: { morning: 3, noon: 4, night: 5 },
                 mood: { morning: 6, noon: 6, night: 7 },
-                note: 'サンプル: 標準勤務',
+                note,
               };
-            case 2: // 夜勤日
+            }
+            case 2: {
+              const notes = [
+                '夜勤: SV引継ぎ',
+                '夜勤明け: 仮眠',
+                'アラート多発・復旧',
+                '在庫棚卸サポート',
+                '夜間対応: 障害テスト',
+              ];
+              let note = pick(notes);
+              if (dd % 6 === 0) note = '体調△: 早め就寝・水分多め';
               return {
                 sleep_minutes: 7 * 60 + 30,
                 fatigue: { morning: 4, noon: 5, night: 4 },
                 mood: { morning: 4, noon: 5, night: 6 },
-                note: 'サンプル: 夜勤',
+                note,
               };
-            case 3: // 学習集中日
+            }
+            case 3: {
+              const notes = [
+                'Udemy 2h / 章3',
+                'アルゴ練 10問',
+                '写経 90m / サンプル実装',
+                '英語ドキュメント読解',
+                '小課題提出・FB反映',
+              ];
+              let note = pick(notes);
+              if (dd % 8 === 0)
+                note = '長文: 学習メモ。抽象化/設計トレードオフ、パフォーマンス測定方法を整理。';
               return {
                 sleep_minutes: 7 * 60,
                 fatigue: { morning: 2, noon: 3, night: 4 },
                 mood: { morning: 6, noon: 7, night: 7 },
-                note: 'サンプル: 学習メモあり',
+                note,
               };
-            case 4: // 旅行日
+            }
+            case 4: {
+              const notes = [
+                '移動: 東京→大阪',
+                '観光: 博物館・市場',
+                '渋滞30m: 休憩多め',
+                '温泉・早寝',
+                '雨: 屋内中心',
+              ];
+              let note = pick(notes);
               return {
                 sleep_minutes: 5 * 60,
                 fatigue: { morning: 3, noon: 5, night: 6 },
                 mood: { morning: 7, noon: 6, night: 6 },
-                note: 'サンプル: 長距離移動',
+                note,
               };
-            case 5: // 家族・ケア日
+            }
+            case 5: {
+              const notes = [
+                '買い出し・作り置き',
+                '送迎: 朝/夕',
+                '通院付添・処方受取',
+                'リハビリ同行メモ',
+                '学校行事: 懇談会',
+                '看護記録の更新',
+                '夜間対応: 2回起床',
+              ];
+              let note = pick(notes);
+              if (dd % 9 === 0)
+                note =
+                  '長文: ケア計画の見直し案。役割分担、頻度、負担分散について関係者へ相談予定。';
               return {
                 sleep_minutes: 6 * 60 + 30,
                 fatigue: { morning: 3, noon: 4, night: 4 },
                 mood: { morning: 7, noon: 7, night: 6 },
-                note: 'サンプル: ケア対応',
+                note,
               };
-            case 6: // 回復日
+            }
+            case 6: {
+              const notes = [
+                '安静・水分補給',
+                '軽い散歩20m',
+                'ストレッチ・温浴',
+                '読書・早寝',
+                '頭痛△: カフェイン控えめ',
+              ];
+              let note = pick(notes);
               return {
                 sleep_minutes: 9 * 60,
                 fatigue: { morning: 1, noon: 2, night: 2 },
                 mood: { morning: 5, noon: 6, night: 6 },
-                note: 'サンプル: 休養',
+                note,
               };
+            }
             default:
               return { sleep_minutes: 0, fatigue: {}, mood: {}, note: '' };
           }
@@ -359,7 +429,7 @@
           if (useSample) {
             j = {
               activities: samplePlanForDay(d, sampleId),
-              ...sampleMetricsForDay(sampleId),
+              ...sampleMetricsForDay(d, sampleId),
             };
           } else {
             const r = await fetch(`api/day?date=${d}`);
