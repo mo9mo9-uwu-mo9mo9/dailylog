@@ -56,12 +56,10 @@ echo "[INFO] Configuring runner for $REPO_URL ..."
   --token "$TOKEN" \
   --labels "$RUNNER_LABELS" \
   --name "$RUNNER_NAME" \
-  --unattended \
-  --ephemeral false
+  --unattended
 
 echo "[INFO] Installing as service for user: $SVC_USER"
 ./svc.sh install "$SVC_USER"
 ./svc.sh start
 
 echo "[OK] Runner installed and started. Verify in GitHub > Settings > Actions > Runners."
-
