@@ -48,8 +48,8 @@
       }
       .dayrow {
         display: grid;
-        /* 指標表示のためラベル幅を拡張（印刷最適化は別Issue #56で対応） */
-        grid-template-columns: 150px auto;
+        /* 指標の可読性向上のためラベル列を広げ、グラフ横幅を抑える */
+        grid-template-columns: 180px auto;
         gap: 6px;
         align-items: center;
       }
@@ -63,11 +63,11 @@
       }
       .daylabel .date {
         font-weight: 600;
-        font-size: 12px;
+        font-size: 12px; /* 日付は2桁表示のため12pxで十分 */
         color: #444;
       }
       .daylabel .metrics {
-        font-size: 10px;
+        font-size: 12px; /* 可読性向上 */
         color: #666;
         white-space: nowrap;
         overflow: hidden;
@@ -98,6 +98,9 @@
         .dayrow {
           break-inside: avoid;
           page-break-inside: avoid;
+        }
+        .daylabel .metrics {
+          font-size: 12px; /* 印刷時も視認性を維持 */
         }
       }
     </style>
@@ -357,7 +360,9 @@
           labelWrap.className = 'daylabel';
           const dateEl = document.createElement('div');
           dateEl.className = 'date';
-          dateEl.textContent = d;
+          // 年月は見出しに出ているため、日付のみ（DD）を表示
+          dateEl.textContent = d.slice(8, 10);
+          dateEl.title = d; // ホバーでフル表示
           labelWrap.appendChild(dateEl);
           const metricsEl = document.createElement('div');
           metricsEl.className = 'metrics';
