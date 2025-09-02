@@ -289,11 +289,63 @@
           }
           return acts;
         }
+        function sampleMetricsForDay(sample) {
+          // サンプル用のダミー指標（概ねパターンに沿った値）
+          switch (sample) {
+            case 1: // 標準勤務日
+              return {
+                sleep_minutes: 6 * 60 + 30,
+                fatigue: { morning: 3, noon: 4, night: 5 },
+                mood: { morning: 6, noon: 6, night: 7 },
+                note: 'サンプル: 標準勤務',
+              };
+            case 2: // 夜勤日
+              return {
+                sleep_minutes: 7 * 60 + 30,
+                fatigue: { morning: 4, noon: 5, night: 4 },
+                mood: { morning: 4, noon: 5, night: 6 },
+                note: 'サンプル: 夜勤',
+              };
+            case 3: // 学習集中日
+              return {
+                sleep_minutes: 7 * 60,
+                fatigue: { morning: 2, noon: 3, night: 4 },
+                mood: { morning: 6, noon: 7, night: 7 },
+                note: 'サンプル: 学習メモあり',
+              };
+            case 4: // 旅行日
+              return {
+                sleep_minutes: 5 * 60,
+                fatigue: { morning: 3, noon: 5, night: 6 },
+                mood: { morning: 7, noon: 6, night: 6 },
+                note: 'サンプル: 長距離移動',
+              };
+            case 5: // 家族・ケア日
+              return {
+                sleep_minutes: 6 * 60 + 30,
+                fatigue: { morning: 3, noon: 4, night: 4 },
+                mood: { morning: 7, noon: 7, night: 6 },
+                note: 'サンプル: ケア対応',
+              };
+            case 6: // 回復日
+              return {
+                sleep_minutes: 9 * 60,
+                fatigue: { morning: 1, noon: 2, night: 2 },
+                mood: { morning: 5, noon: 6, night: 6 },
+                note: 'サンプル: 休養',
+              };
+            default:
+              return { sleep_minutes: 0, fatigue: {}, mood: {}, note: '' };
+          }
+        }
         const container = document.getElementById('monthwrap');
         for (const d of daysInMonth(m)) {
           let j;
           if (useSample) {
-            j = { activities: samplePlanForDay(d, sampleId) };
+            j = {
+              activities: samplePlanForDay(d, sampleId),
+              ...sampleMetricsForDay(sampleId),
+            };
           } else {
             const r = await fetch(`api/day?date=${d}`);
             j = await r.json();
@@ -309,27 +361,25 @@
           labelWrap.appendChild(dateEl);
           const metricsEl = document.createElement('div');
           metricsEl.className = 'metrics';
-          if (!useSample) {
-            const mm = Number(j?.sleep_minutes || 0);
-            const f = j?.fatigue || {};
-            const mmm = j?.mood || {};
-            const nt = String(j?.note || '').trim();
-            const parts = [];
-            if (mm > 0) parts.push(`睡${toHM(mm)}`);
-            const fSum = (f.morning | 0) + (f.noon | 0) + (f.night | 0);
-            if (fSum > 0) parts.push(`疲${f.morning | 0}/${f.noon | 0}/${f.night | 0}`);
-            const mSum = (mmm.morning | 0) + (mmm.noon | 0) + (mmm.night | 0);
-            if (mSum > 0) parts.push(`気${mmm.morning | 0}/${mmm.noon | 0}/${mmm.night | 0}`);
-            if (nt.length > 0) parts.push('📝');
-            metricsEl.textContent = parts.join(' ');
-            // ツールチップ用に詳細も付与
-            if (parts.length > 0) {
-              metricsEl.title = `睡眠:${mm > 0 ? toHM(mm) : '-'} / 疲労:${f.morning | 0}/${
-                f.noon | 0
-              }/${f.night | 0} / 気分:${mmm.morning | 0}/${mmm.noon | 0}/${
-                mmm.night | 0
-              }${nt ? ' / メモあり' : ''}`;
-            }
+          const mm = Number(j?.sleep_minutes || 0);
+          const f = j?.fatigue || {};
+          const mmm = j?.mood || {};
+          const nt = String(j?.note || '').trim();
+          const parts = [];
+          if (mm > 0) parts.push(`睡${toHM(mm)}`);
+          const fSum = (f.morning | 0) + (f.noon | 0) + (f.night | 0);
+          if (fSum > 0) parts.push(`疲${f.morning | 0}/${f.noon | 0}/${f.night | 0}`);
+          const mSum = (mmm.morning | 0) + (mmm.noon | 0) + (mmm.night | 0);
+          if (mSum > 0) parts.push(`気${mmm.morning | 0}/${mmm.noon | 0}/${mmm.night | 0}`);
+          if (nt.length > 0) parts.push('📝');
+          metricsEl.textContent = parts.join(' ');
+          // ツールチップ用に詳細も付与
+          if (parts.length > 0) {
+            metricsEl.title = `睡眠:${mm > 0 ? toHM(mm) : '-'} / 疲労:${f.morning | 0}/${
+              f.noon | 0
+            }/${f.night | 0} / 気分:${mmm.morning | 0}/${mmm.noon | 0}/${
+              mmm.night | 0
+            }${nt ? ' / メモあり' : ''}`;
           }
           labelWrap.appendChild(metricsEl);
           row.appendChild(labelWrap);
