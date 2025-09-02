@@ -87,6 +87,7 @@
         column-gap: var(--grid-gap);
         height: 16px;
         align-items: end;
+        position: relative; /* 24:00 境界線とラベルのため */
       }
       .timegrid .tick {
         position: relative;
@@ -102,6 +103,22 @@
         bottom: 0;
         transform: translateX(-50%);
         left: 0;
+      }
+      .timegrid::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        border-left: 1px solid #aaa; /* 24:00 境界線 */
+        height: 14px;
+      }
+      .timegrid .end-label {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        transform: translateX(50%);
+        font-size: 11px;
+        color: #666;
       }
       .dayrow {
         display: grid;
@@ -229,7 +246,7 @@
     </div>
     <div class="colhead" aria-hidden="false">
       <div>日付</div>
-      <div>グラフ</div>
+      <div>グラフ（0:00→24:00）</div>
       <div>指標</div>
       <div>備考</div>
     </div>
@@ -302,6 +319,11 @@
             }
             tg.appendChild(tk);
           }
+          // 24:00 ラベル（右端）
+          const endLab = document.createElement('span');
+          endLab.className = 'end-label';
+          endLab.textContent = '24:00';
+          tg.appendChild(endLab);
         }
 
         function daysInMonth(ym) {
