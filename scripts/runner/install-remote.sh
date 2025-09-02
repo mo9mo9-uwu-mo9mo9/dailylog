@@ -71,8 +71,10 @@ ssh "${ssh_opts[@]}" "$SSH_HOST" 'sudo chown dailylog:dailylog /srv/.runner/boot
 echo "[INFO] Registering and starting runner as dailylog..."
 ssh "${ssh_opts[@]}" "$SSH_HOST" "sudo -u dailylog env RUNNER_TOKEN='$TOKEN' bash /srv/.runner/bootstrap.sh"
 
+echo "[INFO] Ensuring runner service is installed and started (root) ..."
+ssh "${ssh_opts[@]}" "$SSH_HOST" 'sudo bash -lc "/srv/.runner/svc.sh install dailylog || true; /srv/.runner/svc.sh start || true"'
+
 echo "[INFO] Ensuring app repo exists at /srv/dailylog"
 ssh "${ssh_opts[@]}" "$SSH_HOST" 'if [ ! -d /srv/dailylog/.git ]; then sudo -u dailylog git clone https://github.com/'"$REPO_SLUG"' /srv/dailylog; fi'
 
 echo "[OK] Runner should be online with label dailylog-prod. Trigger deploy when ready."
-
