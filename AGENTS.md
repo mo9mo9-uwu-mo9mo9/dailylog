@@ -92,6 +92,7 @@ gh issue close <番号> \
 # 参考: ラベルの作成（初回のみ、権限保持者が実施）
 gh label create "priority:P0" --color FF0000 --description "最優先（MVP必須）"
 gh label create "priority:P1" --color FFA500 --description "優先（MVP後すぐ）"
+gh label create "codex:review" --color BFDADC --description "Codex レビューの手動依頼に使用"
 ```
 
 - すべてのコミュニケーション（Issue/PR/コメント/本文/コミットメッセージ）は日本語で記載してください。
@@ -113,6 +114,14 @@ gh issue create \
   --body  "背景/方針/受け入れ基準（日本語）" \
   --label "priority:P1" --label "type:feature"
 ```
+
+### Codex レビュー依頼の手順（任意・明示）
+
+- 自動投稿は無効。必要時のみ手動で実行します。
+- 手順:
+  - 対象 PR に `codex:review` ラベルを付与
+  - GitHub Actions の "Auto Codex Review" を `workflow_dispatch` で実行し、`pr_number` を指定、`confirm` を `true` にする
+- ラベルが無い場合は投稿されません（安全策）。
 
 ### PR マージ後の運用（main チェックアウトとブランチ整理）
 
