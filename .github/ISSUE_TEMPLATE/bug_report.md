@@ -17,3 +17,7 @@ assignees: ['mo9mo9-uwu-mo9mo9']
 ## スクリーンショット/ログ
 
 ## 影響範囲
+
+## ラベル（必須）
+
+- 本Issueには必ず優先度ラベル（`priority:P0` または `priority:P1`）を付与してください。

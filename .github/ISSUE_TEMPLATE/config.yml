@@ -3,3 +3,6 @@ contact_links:
   - name: 質問・相談（軽微）
     url: https://github.com/mo9mo9-uwu-mo9mo9/dailylog/discussions
     about: 軽微な質問は Discussions を利用してください。
+  - name: ラベル運用の注意
+    url: https://github.com/mo9mo9-uwu-mo9mo9/dailylog/labels
+    about: すべてのIssueに `priority:P0` または `priority:P1` を必ず付与してください（必須）。
