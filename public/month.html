@@ -381,11 +381,12 @@
           tg.appendChild(endLab);
         }
 
-        function buildTimegridSVG() {
+        function buildTimegridSVG(sizingOverride) {
           const holder = document.getElementById('timegrid');
           if (!holder) return;
           const wrap = holder.parentElement; // timescaleの右列
-          const { slot, gap, width } = measureSlot(wrap);
+          const base = sizingOverride || measureSlot(wrap);
+          const { slot, gap, width } = base;
           holder.innerHTML = '';
           const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
           svg.setAttribute('width', String(width));
@@ -654,7 +655,8 @@
         const tsHolder = document.getElementById('timegrid');
         let sizing;
         if (render === 'svg') {
-          sizing = buildTimegridSVG();
+          // 後段で1行目の幅を実測し、その値で再描画する
+          sizing = null;
         } else {
           buildTimegridCSS();
         }
@@ -683,7 +685,12 @@
           // 上段: グラフ（CSS Grid or SVG）
           let grid;
           if (render === 'svg') {
-            const { slot, gap, width } = sizing || buildTimegridSVG();
+            // 1行目で正確な幅を実測し、以降の行と時間スケールに適用
+            sizing = sizing || measureSlot(content);
+            const { slot, gap, width } = sizing;
+            if (!document.querySelector('.svg-scale')) {
+              buildTimegridSVG(sizing);
+            }
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.setAttribute('width', String(width));
             svg.setAttribute(
