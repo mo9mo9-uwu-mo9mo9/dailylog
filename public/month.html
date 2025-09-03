@@ -107,7 +107,7 @@
         white-space: nowrap;
         pointer-events: none;
       }
-      .timegrid::after {
+      .timegrid::after {\n
         content: '';
         position: absolute;
         right: 0;
@@ -305,7 +305,7 @@
         const q = new URLSearchParams(location.search);
         const m = q.get('month') || new Date().toISOString().slice(0, 7);
         const sampleId = parseInt(q.get('sample') || '0', 10) || 0;
-        const render = (q.get('render') || '').toLowerCase(); // '', 'int', 'svg'
+        const render = (q.get('render') || 'svg').toLowerCase(); // default svg
         const palQ = (q.get('pal') || '').toLowerCase();
         const storedPal = localStorage.getItem('dailylog.pal') || '';
         const palette = ['hc', 'mid', 'pastel'].includes(palQ)
@@ -392,41 +392,61 @@
           svg.setAttribute('width', String(width));
           svg.setAttribute('height', '26');
           svg.setAttribute('class', 'svg-scale');
-          svg.setAttribute('style', 'display:block');
+          svg.setAttribute('style', 'display:block; overflow:visible');
+          holder.classList.add('svg-mode');
           const gLines = document.createElementNS(svg.namespaceURI, 'g');
           gLines.setAttribute('shape-rendering', 'crispEdges');
+          const strokeColor = '#555';
+          const strokeW = 1; // 細く濃く
           for (let h = 0; h < 24; h++) {
-            const x = (h * 2 - 1) * (slot + gap) + slot + gap / 2; // 中央
+            const rawX = h === 0 ? 0 : (h * 2 - 1) * (slot + gap) + slot + gap / 2; // 中央 or 先頭
+            const X = Math.round(rawX) + (strokeW % 2 ? 0.5 : 0);
             const line = document.createElementNS(svg.namespaceURI, 'line');
-            const X = Math.round(x) + (gap % 2 ? 0.5 : 0); // 偶奇で最適なアライメント
             line.setAttribute('x1', String(X));
             line.setAttribute('y1', '10');
             line.setAttribute('x2', String(X));
             line.setAttribute('y2', '26');
-            line.setAttribute('stroke', '#777');
-            line.setAttribute('stroke-width', String(gap));
+            line.setAttribute('stroke', strokeColor);
+            line.setAttribute('stroke-width', String(strokeW));
+            line.setAttribute('stroke-linecap', 'square');
             line.setAttribute('vector-effect', 'non-scaling-stroke');
             gLines.appendChild(line);
             const text = document.createElementNS(svg.namespaceURI, 'text');
-            text.setAttribute('x', String(X));
+            text.setAttribute('x', String(h === 0 ? 4 : X));
             text.setAttribute('y', '8');
-            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('text-anchor', h === 0 ? 'start' : 'middle');
             text.setAttribute('font-size', '10');
             text.textContent = String(h).padStart(2, '0') + ':00';
             svg.appendChild(text);
           }
           // 24:00（右端）
-          const Xend = Math.round(width) + (gap % 2 ? 0.5 : 0);
+          const Xend = Math.round(width) + (strokeW % 2 ? 0.5 : 0);
           const lEnd = document.createElementNS(svg.namespaceURI, 'line');
           lEnd.setAttribute('x1', String(Xend));
           lEnd.setAttribute('y1', '10');
           lEnd.setAttribute('x2', String(Xend));
           lEnd.setAttribute('y2', '26');
-          lEnd.setAttribute('stroke', '#777');
-          lEnd.setAttribute('stroke-width', String(gap));
+          lEnd.setAttribute('stroke', strokeColor);
+          lEnd.setAttribute('stroke-width', String(strokeW));
+          lEnd.setAttribute('stroke-linecap', 'square');
           lEnd.setAttribute('vector-effect', 'non-scaling-stroke');
           svg.appendChild(gLines);
           svg.appendChild(lEnd);
+          const textEnd = document.createElementNS(svg.namespaceURI, 'text');
+          textEnd.setAttribute('x', String(Xend));
+          textEnd.setAttribute('y', '8');
+          textEnd.setAttribute('text-anchor', 'middle');
+          textEnd.setAttribute('font-size', '10');
+          textEnd.textContent = '24:00';
+          svg.appendChild(textEnd);
+          // 24:00 ラベル
+          const textEnd = document.createElementNS(svg.namespaceURI, 'text');
+          textEnd.setAttribute('x', String(width - 4));
+          textEnd.setAttribute('y', '8');
+          textEnd.setAttribute('text-anchor', 'end');
+          textEnd.setAttribute('font-size', '10');
+          textEnd.textContent = '24:00';
+          svg.appendChild(textEnd);
           holder.appendChild(svg);
           return { slot, gap, width };
         }
