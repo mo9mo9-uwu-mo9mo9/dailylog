@@ -123,6 +123,9 @@
         font-size: 11px;
         color: #666;
       }
+      .svg-scale text {
+        font-variant-numeric: tabular-nums;
+      }
       .dayrow {
         display: grid;
         /* 2カラム: 日付 | 内容（内容は上下2段: グラフ/メタ） */
@@ -396,6 +399,32 @@
           tg.appendChild(endLab);
         }
 
+        function drawHourLabel(svg, X, hour, y = 8, margin = 6) {
+          const ns = svg.namespaceURI;
+          const h = String(hour).padStart(2, '0');
+          const left = document.createElementNS(ns, 'text');
+          left.setAttribute('x', String(X - margin));
+          left.setAttribute('y', String(y));
+          left.setAttribute('text-anchor', 'end');
+          left.setAttribute('font-size', '10');
+          left.textContent = h;
+          const colon = document.createElementNS(ns, 'text');
+          colon.setAttribute('x', String(X));
+          colon.setAttribute('y', String(y));
+          colon.setAttribute('text-anchor', 'middle');
+          colon.setAttribute('font-size', '10');
+          colon.textContent = ':';
+          const right = document.createElementNS(ns, 'text');
+          right.setAttribute('x', String(X + margin));
+          right.setAttribute('y', String(y));
+          right.setAttribute('text-anchor', 'start');
+          right.setAttribute('font-size', '10');
+          right.textContent = '00';
+          svg.appendChild(left);
+          svg.appendChild(colon);
+          svg.appendChild(right);
+        }
+
         function buildTimegridSVG(sizingOverride) {
           const holder = document.getElementById('timegrid');
           if (!holder) return;
@@ -426,13 +455,7 @@
             line.setAttribute('stroke-linecap', 'square');
             line.setAttribute('vector-effect', 'non-scaling-stroke');
             gLines.appendChild(line);
-            const text = document.createElementNS(svg.namespaceURI, 'text');
-            text.setAttribute('x', String(X));
-            text.setAttribute('y', '8');
-            text.setAttribute('text-anchor', 'middle');
-            text.setAttribute('font-size', '10');
-            text.textContent = String(h).padStart(2, '0') + ':00';
-            svg.appendChild(text);
+            drawHourLabel(svg, X, h);
           }
           // 24:00（右端）
           const Xend = Math.round(width) + (strokeW % 2 ? 0.5 : 0);
@@ -447,13 +470,7 @@
           lEnd.setAttribute('vector-effect', 'non-scaling-stroke');
           svg.appendChild(gLines);
           svg.appendChild(lEnd);
-          const textEnd = document.createElementNS(svg.namespaceURI, 'text');
-          textEnd.setAttribute('x', String(Xend));
-          textEnd.setAttribute('y', '8');
-          textEnd.setAttribute('text-anchor', 'middle');
-          textEnd.setAttribute('font-size', '10');
-          textEnd.textContent = '24:00';
-          svg.appendChild(textEnd);
+          drawHourLabel(svg, Xend, 24);
           holder.appendChild(svg);
           return { slot, gap, width };
         }
