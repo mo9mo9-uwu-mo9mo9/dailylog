@@ -64,11 +64,31 @@ PR を作成した作成者は、マージ前に必ず「セルフレビュー�
 
 - 変更は必ず「調査 → Issue 作成 → Issue に基づく PR」の順で進める。
 - PR には関連 Issue を必ず明記する（例: `関連 Issue: #123` または `Closes #123`）。
+- 相談・質問があった場合は、即実装に入らず、まず「意見（選択肢/メリデメ/推奨）」を日本語で回答し、合意のうえで実装に進む。
+  - 流れ: 相談 → 意見・比較 → 方針合意 → Issue に方針を明記 → PR 実装。
+  - 例: 「SVG と CSS の比較」「線幅/配色の候補」「リスク/影響範囲」の提示。
 - CI で PR 本文／タイトルに Issue 参照が無い場合は失敗させる（.github/workflows/pr-issue-check.yml）。
 - 追加の指示がユーザーから出た場合:
   - まず実現方法を分析し、方針・影響範囲・受け入れ基準を整理した「Issue」を必ず作成する。
   - Issue のレビュー（必要なら質疑）後に、当該 Issue に基づく PR を作成する。
   - 一気に実装に着手（直接コミット/PR）するのはNG。
+
+## デプロイ（本番自動化・明文化）
+
+- 運用: push to `main` で GitHub Actions "Deploy (production)" が self-hosted ランナー（n100ubuntu-dailylog）上で実行され、自動で本番が最新化される。
+  - 処理: `git reset --hard origin/main` → `npm ci --omit=dev` → `systemctl restart dailylog` → ヘルスチェック（127.0.0.1:3002/api/health の 200/401 をOKとする）。
+  - 公開: Tailscale Funnel 経由（例: `https://<host>.<tailnet>.ts.net/dailylog/`）。
+- 手動実行: Actions から "Deploy (production)" を `workflow_dispatch` で実行可能。
+- フォールバック（SSH）:
+  ```bash
+  ssh <prod-host>
+  cd /srv/dailylog
+  git fetch --prune && git reset --hard origin/main
+  npm ci --omit=dev
+  sudo systemctl restart dailylog
+  curl -i http://127.0.0.1:3002/api/health
+  ```
+- 注意: 本番での直編集は禁止。更新は必ず PR → main → 自動デプロイの経路で行う。
 
 ## GitHub CLI（gh）の利用方針（重要・明文化）
 
