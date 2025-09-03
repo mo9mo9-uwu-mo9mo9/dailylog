@@ -1,0 +1,27 @@
+name: Reboot (n100 server)
+
+on:
+  schedule:
+    # JST 03:00 = UTC 18:00 (前日)
+    - cron: '0 18 * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: reboot-n100
+  cancel-in-progress: false
+
+jobs:
+  reboot:
+    runs-on: [self-hosted, dailylog-prod]
+    steps:
+      - name: Echo schedule and host
+        run: |
+          set -euxo pipefail
+          echo "Now (UTC): $(date -u)"
+          echo "Now (local): $(date)"
+          uname -a || true
+      - name: Reboot host (JST 03:00 daily)
+        run: |
+          echo "Rebooting n100 server via systemd..."
+          sudo /sbin/reboot
+
