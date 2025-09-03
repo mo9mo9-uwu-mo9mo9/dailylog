@@ -399,7 +399,7 @@
           tg.appendChild(endLab);
         }
 
-        function drawHourLabel(svg, X, hour, y = 8, margin = 6) {
+        function drawHourLabel(svg, X, hour, y = 8, margin = 3) {
           const ns = svg.namespaceURI;
           const h = String(hour).padStart(2, '0');
           const left = document.createElementNS(ns, 'text');
@@ -444,7 +444,10 @@
           const strokeW = 1; // 細く濃く
           for (let h = 0; h < 24; h++) {
             const rawX = h === 0 ? 0 : (h * 2 - 1) * (slot + gap) + slot + gap / 2; // 中央 or 先頭
-            const X = Math.round(rawX) + (strokeW % 2 ? 0.5 : 0);
+            // 幾何学的中心が整数なら整数ピクセルに、
+            // 小数なら 0.5px オフセットで crisp に描画
+            const isInt = Math.abs(rawX - Math.round(rawX)) < 1e-3;
+            const X = isInt ? Math.round(rawX) : Math.round(rawX) + 0.5;
             const line = document.createElementNS(svg.namespaceURI, 'line');
             line.setAttribute('x1', String(X));
             line.setAttribute('y1', '10');
