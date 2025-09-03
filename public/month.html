@@ -427,9 +427,9 @@
             line.setAttribute('vector-effect', 'non-scaling-stroke');
             gLines.appendChild(line);
             const text = document.createElementNS(svg.namespaceURI, 'text');
-            text.setAttribute('x', String(h === 0 ? 4 : X));
+            text.setAttribute('x', String(X));
             text.setAttribute('y', '8');
-            text.setAttribute('text-anchor', h === 0 ? 'start' : 'middle');
+            text.setAttribute('text-anchor', 'middle');
             text.setAttribute('font-size', '10');
             text.textContent = String(h).padStart(2, '0') + ':00';
             svg.appendChild(text);
