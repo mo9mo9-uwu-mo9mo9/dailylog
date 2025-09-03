@@ -97,6 +97,9 @@
         bottom: 0;
         transform: translateX(-50%);
         left: 0;
+        font-size: 10px;
+        white-space: nowrap;
+        pointer-events: none;
       }
       .timegrid::after {
         content: '';
@@ -311,13 +314,11 @@
         if (tg) {
           for (let h = 0; h < 24; h++) {
             const tk = document.createElement('div');
-            tk.className = 'tick' + (h % 6 === 0 ? ' major' : '');
-            if (h % 6 === 0) {
-              const lab = document.createElement('span');
-              lab.className = 'lab';
-              lab.textContent = String(h).padStart(2, '0') + ':00';
-              tk.appendChild(lab);
-            }
+            tk.className = 'tick' + (h % 3 === 0 ? ' major' : '');
+            const lab = document.createElement('span');
+            lab.className = 'lab';
+            lab.textContent = String(h).padStart(2, '0') + ':00';
+            tk.appendChild(lab);
             tg.appendChild(tk);
           }
           // 24:00 ラベル（右端）
