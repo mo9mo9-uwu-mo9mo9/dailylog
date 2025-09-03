@@ -79,7 +79,7 @@
         display: grid;
         grid-template-columns: repeat(24, 1fr);
         column-gap: var(--grid-gap);
-        height: 16px;
+        height: 26px; /* ラベルを線の上に載せるため余白を確保 */
         align-items: end;
         position: relative; /* 24:00 境界線とラベルのため */
       }
@@ -94,7 +94,7 @@
       }
       .timegrid .tick .lab {
         position: absolute;
-        bottom: 0;
+        bottom: calc(100% + 2px); /* 目盛線の上側に配置 */
         transform: translateX(-50%);
         left: 0;
         font-size: 10px;
@@ -112,7 +112,7 @@
       .timegrid .end-label {
         position: absolute;
         right: 0;
-        bottom: 0;
+        bottom: 16px; /* 24:00 線の上に表示 */
         transform: translateX(50%);
         font-size: 11px;
         color: #666;
