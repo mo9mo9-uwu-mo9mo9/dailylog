@@ -11,6 +11,11 @@
         --grid-gap: 2px;
         --cell-radius: 2px;
         --cell-border: 0;
+        /* 4カラム用の列幅（調整しやすいようにCSS変数化） */
+        --col-date: 36px; /* DD 2桁 */
+        --col-metrics: 150px;
+        --col-note: 220px;
+        --row-sep-color: #e5e5e5; /* 行の区切り線（画面） */
       }
       body {
         padding: 8px;
@@ -46,29 +51,110 @@
         grid-template-columns: 1fr;
         gap: 6px;
       }
+      /* 列見出し */
+      .colhead {
+        display: grid;
+        grid-template-columns: var(--col-date) minmax(320px, 1fr) var(--col-metrics) minmax(
+            var(--col-note),
+            1fr
+          );
+        gap: 6px;
+        align-items: center;
+        font-size: 12px;
+        color: #333;
+        margin-top: 6px;
+        border-bottom: 1px solid var(--row-sep-color, #e5e5e5);
+        padding-bottom: 4px;
+      }
+      .colhead div {
+        font-weight: 700;
+      }
+      /* 時間目盛り（グラフの時間軸） */
+      .timescale {
+        display: grid;
+        grid-template-columns: var(--col-date) minmax(320px, 1fr) var(--col-metrics) minmax(
+            var(--col-note),
+            1fr
+          );
+        gap: 6px;
+        align-items: center;
+        color: #666;
+        font-size: 11px;
+      }
+      .timegrid {
+        display: grid;
+        grid-template-columns: repeat(24, 1fr);
+        column-gap: var(--grid-gap);
+        height: 16px;
+        align-items: end;
+        position: relative; /* 24:00 境界線とラベルのため */
+      }
+      .timegrid .tick {
+        position: relative;
+        border-left: 1px solid #ddd;
+        height: 12px;
+      }
+      .timegrid .tick.major {
+        border-left-color: #aaa;
+        height: 14px;
+      }
+      .timegrid .tick .lab {
+        position: absolute;
+        bottom: 0;
+        transform: translateX(-50%);
+        left: 0;
+      }
+      .timegrid::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        border-left: 1px solid #aaa; /* 24:00 境界線 */
+        height: 14px;
+      }
+      .timegrid .end-label {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        transform: translateX(50%);
+        font-size: 11px;
+        color: #666;
+      }
       .dayrow {
         display: grid;
-        /* 指標の可読性向上のためラベル列を広げ、グラフ横幅を抑える */
-        grid-template-columns: 180px auto;
+        /* auto トラックが縮み過ぎてグラフが0幅になるのを防ぐため minmax を使用 */
+        grid-template-columns: var(--col-date) minmax(320px, 1fr) var(--col-metrics) minmax(
+            var(--col-note),
+            1fr
+          );
         gap: 6px;
         align-items: center;
+        padding: 2px 0;
+        border-bottom: 1px solid var(--row-sep-color);
       }
-      .daylabel {
+      .monthwrap .dayrow:first-child {
+        border-top: 1px solid var(--row-sep-color);
+      }
+      .daydate {
         display: flex;
         align-items: center;
-        gap: 6px;
+        justify-content: center;
         height: var(--cell-h);
         line-height: var(--cell-h);
-        overflow: hidden;
-      }
-      .daylabel .date {
         font-weight: 600;
-        font-size: 12px; /* 日付は2桁表示のため12pxで十分 */
+        font-size: 12px;
         color: #444;
       }
-      .daylabel .metrics {
-        font-size: 12px; /* 可読性向上 */
-        color: #666;
+      .metrics {
+        font-size: 12px;
+        color: #333;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .note {
+        font-size: 12px;
+        color: #444;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -99,8 +185,23 @@
           break-inside: avoid;
           page-break-inside: avoid;
         }
-        .daylabel .metrics {
+        .metrics,
+        .note {
           font-size: 12px; /* 印刷時も視認性を維持 */
+        }
+        /* 印刷時: 行罫線を強調、背景は無効化 */
+        .dayrow {
+          background: none !important;
+          border-bottom: 0.2mm solid #000;
+        }
+        .monthwrap .dayrow:first-child {
+          border-top: 0.2mm solid #000;
+        }
+      }
+      @media screen {
+        /* 画面では薄いゼブラ背景でトラッキングしやすく */
+        .dayrow:nth-child(odd) {
+          background: #fafafa;
         }
       }
     </style>
@@ -142,6 +243,20 @@
     </div>
     <div class="muted" id="subtitle">
       各行: 30分×24時間の概況（カテゴリパターン）。クリックで日次ページへ。
+    </div>
+    <div class="colhead" aria-hidden="false">
+      <div>日付</div>
+      <div>グラフ（0:00→24:00）</div>
+      <div>指標</div>
+      <div>備考</div>
+    </div>
+    <div class="timescale" aria-hidden="false">
+      <div></div>
+      <div>
+        <div class="timegrid" id="timegrid"></div>
+      </div>
+      <div></div>
+      <div></div>
     </div>
     <div class="monthwrap" id="monthwrap"></div>
     <script>
@@ -189,6 +304,26 @@
           sp.textContent = lab;
           dv.appendChild(sp);
           lg.appendChild(dv);
+        }
+        // 時間目盛り（0..23h, 6時間ごとにラベル）
+        const tg = document.getElementById('timegrid');
+        if (tg) {
+          for (let h = 0; h < 24; h++) {
+            const tk = document.createElement('div');
+            tk.className = 'tick' + (h % 6 === 0 ? ' major' : '');
+            if (h % 6 === 0) {
+              const lab = document.createElement('span');
+              lab.className = 'lab';
+              lab.textContent = String(h).padStart(2, '0') + ':00';
+              tk.appendChild(lab);
+            }
+            tg.appendChild(tk);
+          }
+          // 24:00 ラベル（右端）
+          const endLab = document.createElement('span');
+          endLab.className = 'end-label';
+          endLab.textContent = '24:00';
+          tg.appendChild(endLab);
         }
 
         function daysInMonth(ym) {
@@ -292,51 +427,121 @@
           }
           return acts;
         }
-        function sampleMetricsForDay(sample) {
+        function sampleMetricsForDay(d, sample) {
           // サンプル用のダミー指標（概ねパターンに沿った値）
+          const dd = Number(d.slice(8, 10));
+          const pick = (arr) => arr[(dd - 1) % arr.length];
           switch (sample) {
-            case 1: // 標準勤務日
+            case 1: {
+              const notes = [
+                '在宅: 朝会・1on1',
+                '出社: 進捗レビュー',
+                '要件定義メモ更新',
+                '資料作成: 提案ドラフト',
+                '残業1h: リリース準備',
+                '出張手配・精算',
+                '雑務消化・ヘルプ対応',
+              ];
+              let note = pick(notes);
+              if (dd % 7 === 0)
+                note =
+                  '長文: 部署横断ミーティング議事要約。決定事項/宿題/期限を整理し関係者へ共有。';
+              if (dd % 5 === 0) note = '';
               return {
                 sleep_minutes: 6 * 60 + 30,
                 fatigue: { morning: 3, noon: 4, night: 5 },
                 mood: { morning: 6, noon: 6, night: 7 },
-                note: 'サンプル: 標準勤務',
+                note,
               };
-            case 2: // 夜勤日
+            }
+            case 2: {
+              const notes = [
+                '夜勤: SV引継ぎ',
+                '夜勤明け: 仮眠',
+                'アラート多発・復旧',
+                '在庫棚卸サポート',
+                '夜間対応: 障害テスト',
+              ];
+              let note = pick(notes);
+              if (dd % 6 === 0) note = '体調△: 早め就寝・水分多め';
               return {
                 sleep_minutes: 7 * 60 + 30,
                 fatigue: { morning: 4, noon: 5, night: 4 },
                 mood: { morning: 4, noon: 5, night: 6 },
-                note: 'サンプル: 夜勤',
+                note,
               };
-            case 3: // 学習集中日
+            }
+            case 3: {
+              const notes = [
+                'Udemy 2h / 章3',
+                'アルゴ練 10問',
+                '写経 90m / サンプル実装',
+                '英語ドキュメント読解',
+                '小課題提出・FB反映',
+              ];
+              let note = pick(notes);
+              if (dd % 8 === 0)
+                note = '長文: 学習メモ。抽象化/設計トレードオフ、パフォーマンス測定方法を整理。';
               return {
                 sleep_minutes: 7 * 60,
                 fatigue: { morning: 2, noon: 3, night: 4 },
                 mood: { morning: 6, noon: 7, night: 7 },
-                note: 'サンプル: 学習メモあり',
+                note,
               };
-            case 4: // 旅行日
+            }
+            case 4: {
+              const notes = [
+                '移動: 東京→大阪',
+                '観光: 博物館・市場',
+                '渋滞30m: 休憩多め',
+                '温泉・早寝',
+                '雨: 屋内中心',
+              ];
+              let note = pick(notes);
               return {
                 sleep_minutes: 5 * 60,
                 fatigue: { morning: 3, noon: 5, night: 6 },
                 mood: { morning: 7, noon: 6, night: 6 },
-                note: 'サンプル: 長距離移動',
+                note,
               };
-            case 5: // 家族・ケア日
+            }
+            case 5: {
+              const notes = [
+                '買い出し・作り置き',
+                '送迎: 朝/夕',
+                '通院付添・処方受取',
+                'リハビリ同行メモ',
+                '学校行事: 懇談会',
+                '看護記録の更新',
+                '夜間対応: 2回起床',
+              ];
+              let note = pick(notes);
+              if (dd % 9 === 0)
+                note =
+                  '長文: ケア計画の見直し案。役割分担、頻度、負担分散について関係者へ相談予定。';
               return {
                 sleep_minutes: 6 * 60 + 30,
                 fatigue: { morning: 3, noon: 4, night: 4 },
                 mood: { morning: 7, noon: 7, night: 6 },
-                note: 'サンプル: ケア対応',
+                note,
               };
-            case 6: // 回復日
+            }
+            case 6: {
+              const notes = [
+                '安静・水分補給',
+                '軽い散歩20m',
+                'ストレッチ・温浴',
+                '読書・早寝',
+                '頭痛△: カフェイン控えめ',
+              ];
+              let note = pick(notes);
               return {
                 sleep_minutes: 9 * 60,
                 fatigue: { morning: 1, noon: 2, night: 2 },
                 mood: { morning: 5, noon: 6, night: 6 },
-                note: 'サンプル: 休養',
+                note,
               };
+            }
             default:
               return { sleep_minutes: 0, fatigue: {}, mood: {}, note: '' };
           }
@@ -347,7 +552,7 @@
           if (useSample) {
             j = {
               activities: samplePlanForDay(d, sampleId),
-              ...sampleMetricsForDay(sampleId),
+              ...sampleMetricsForDay(d, sampleId),
             };
           } else {
             const r = await fetch(`api/day?date=${d}`);
@@ -355,15 +560,26 @@
           }
           const row = document.createElement('div');
           row.className = 'dayrow';
-          // ラベル＋指標（睡眠/疲労/気分/メモ）
-          const labelWrap = document.createElement('div');
-          labelWrap.className = 'daylabel';
+          // 1列目: 日付（DD のみ表示）
           const dateEl = document.createElement('div');
-          dateEl.className = 'date';
-          // 年月は見出しに出ているため、日付のみ（DD）を表示
+          dateEl.className = 'daydate';
           dateEl.textContent = d.slice(8, 10);
-          dateEl.title = d; // ホバーでフル表示
-          labelWrap.appendChild(dateEl);
+          dateEl.title = d; // フル日付
+          row.appendChild(dateEl);
+          const grid = document.createElement('div');
+          grid.className = 'grid48';
+          const bySlot = new Map((j.activities || []).map((a) => [a.slot, a]));
+          for (let i = 0; i < 48; i++) {
+            const c = document.createElement('div');
+            c.className = 'cell';
+            const a = bySlot.get(i);
+            const cat = a?.category || 'other';
+            c.classList.add('cat-' + cat);
+            c.title = String(a?.label || '');
+            grid.appendChild(c);
+          }
+          row.appendChild(grid);
+          // 3列目: 指標
           const metricsEl = document.createElement('div');
           metricsEl.className = 'metrics';
           const mm = Number(j?.sleep_minutes || 0);
@@ -378,7 +594,6 @@
           if (mSum > 0) parts.push(`気${mmm.morning | 0}/${mmm.noon | 0}/${mmm.night | 0}`);
           if (nt.length > 0) parts.push('📝');
           metricsEl.textContent = parts.join(' ');
-          // ツールチップ用に詳細も付与
           if (parts.length > 0) {
             metricsEl.title = `睡眠:${mm > 0 ? toHM(mm) : '-'} / 疲労:${f.morning | 0}/${
               f.noon | 0
@@ -386,21 +601,13 @@
               mmm.night | 0
             }${nt ? ' / メモあり' : ''}`;
           }
-          labelWrap.appendChild(metricsEl);
-          row.appendChild(labelWrap);
-          const grid = document.createElement('div');
-          grid.className = 'grid48';
-          const bySlot = new Map((j.activities || []).map((a) => [a.slot, a]));
-          for (let i = 0; i < 48; i++) {
-            const c = document.createElement('div');
-            c.className = 'cell';
-            const a = bySlot.get(i);
-            const cat = a?.category || 'other';
-            c.classList.add('cat-' + cat);
-            c.title = String(a?.label || '');
-            grid.appendChild(c);
-          }
-          row.appendChild(grid);
+          row.appendChild(metricsEl);
+          // 4列目: 備考（note）
+          const noteEl = document.createElement('div');
+          noteEl.className = 'note';
+          noteEl.textContent = nt;
+          noteEl.title = nt;
+          row.appendChild(noteEl);
           row.addEventListener('click', () => {
             const u = new URL('./', location.href);
             u.searchParams.set('date', d);
