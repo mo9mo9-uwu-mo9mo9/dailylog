@@ -655,8 +655,7 @@
         const tsHolder = document.getElementById('timegrid');
         let sizing;
         if (render === 'svg') {
-          // 後段で1行目の幅を実測し、その値で再描画する
-          sizing = null;
+          sizing = buildTimegridSVG();
         } else {
           buildTimegridCSS();
         }
@@ -685,12 +684,7 @@
           // 上段: グラフ（CSS Grid or SVG）
           let grid;
           if (render === 'svg') {
-            // 1行目で正確な幅を実測し、以降の行と時間スケールに適用
-            sizing = sizing || measureSlot(content);
             const { slot, gap, width } = sizing;
-            if (!document.querySelector('.svg-scale')) {
-              buildTimegridSVG(sizing);
-            }
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.setAttribute('width', String(width));
             svg.setAttribute(
