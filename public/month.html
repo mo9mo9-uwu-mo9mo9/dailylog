@@ -80,7 +80,8 @@
       }
       .timegrid {
         display: grid;
-        grid-template-columns: repeat(24, 1fr);
+        /* グラフ側と完全一致させるため48列（30分単位）に揃える */
+        grid-template-columns: repeat(48, 1fr);
         column-gap: var(--grid-gap);
         height: 16px; /* 目盛り線の高さを統一 */
         align-items: end;
@@ -90,6 +91,7 @@
         position: relative;
         border-left: 2px solid #777; /* 1時間毎の線: 濃さ/太さを統一して視認性を向上 */
         height: 16px; /* 高さも統一 */
+        width: 0; /* 余計なセル幅をとらず、境界線の左辺に固定 */
       }
       .timegrid .tick.major {
         border-left-color: #777;
@@ -318,6 +320,9 @@
           for (let h = 0; h < 24; h++) {
             const tk = document.createElement('div');
             tk.className = 'tick' + (h % 3 === 0 ? ' major' : '');
+            // 48列グリッドの奇数列(1,3,5,...)に時刻線を配置し、
+            // グラフ(30分×48列)の境界と完全一致させる。
+            tk.style.gridColumn = String(h * 2 + 1);
             const lab = document.createElement('span');
             lab.className = 'lab';
             lab.textContent = String(h).padStart(2, '0') + ':00';
