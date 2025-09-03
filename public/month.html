@@ -107,7 +107,7 @@
         white-space: nowrap;
         pointer-events: none;
       }
-      .timegrid::after {\n
+      .timegrid::after {
         content: '';
         position: absolute;
         right: 0;
@@ -451,14 +451,6 @@
           textEnd.setAttribute('x', String(Xend));
           textEnd.setAttribute('y', '8');
           textEnd.setAttribute('text-anchor', 'middle');
-          textEnd.setAttribute('font-size', '10');
-          textEnd.textContent = '24:00';
-          svg.appendChild(textEnd);
-          // 24:00 ラベル
-          const textEnd = document.createElementNS(svg.namespaceURI, 'text');
-          textEnd.setAttribute('x', String(width - 4));
-          textEnd.setAttribute('y', '8');
-          textEnd.setAttribute('text-anchor', 'end');
           textEnd.setAttribute('font-size', '10');
           textEnd.textContent = '24:00';
           svg.appendChild(textEnd);
