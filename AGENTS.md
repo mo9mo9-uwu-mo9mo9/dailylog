@@ -73,8 +73,6 @@ PR を作成した作成者は、マージ前に必ず「セルフレビュー�
   - Issue のレビュー（必要なら質疑）後に、当該 Issue に基づく PR を作成する。
   - 一気に実装に着手（直接コミット/PR）するのはNG。
 
-
-
 ## デプロイ（本番自動化・明文化）
 
 - 運用: push to `main` で GitHub Actions "Deploy (production)" が self-hosted ランナー（n100ubuntu-dailylog）上で実行され、自動で本番が最新化される。
