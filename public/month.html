@@ -165,7 +165,8 @@
       }
       .grid48 {
         display: grid;
-        grid-template-columns: repeat(24, 1fr);
+        /* 48列=30分単位を横一列に展開（折返し無し） */
+        grid-template-columns: repeat(48, 1fr);
         gap: var(--grid-gap);
       }
       .cell {
