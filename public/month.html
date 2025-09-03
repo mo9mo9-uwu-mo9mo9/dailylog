@@ -51,13 +51,10 @@
         grid-template-columns: 1fr;
         gap: 6px;
       }
-      /* 列見出し */
+      /* 列見出し（2カラム: 日付 | 内容） */
       .colhead {
         display: grid;
-        grid-template-columns: var(--col-date) minmax(320px, 1fr) var(--col-metrics) minmax(
-            var(--col-note),
-            1fr
-          );
+        grid-template-columns: var(--col-date) 1fr;
         gap: 6px;
         align-items: center;
         font-size: 12px;
@@ -72,10 +69,7 @@
       /* 時間目盛り（グラフの時間軸） */
       .timescale {
         display: grid;
-        grid-template-columns: var(--col-date) minmax(320px, 1fr) var(--col-metrics) minmax(
-            var(--col-note),
-            1fr
-          );
+        grid-template-columns: var(--col-date) 1fr;
         gap: 6px;
         align-items: center;
         color: #666;
@@ -122,11 +116,8 @@
       }
       .dayrow {
         display: grid;
-        /* auto トラックが縮み過ぎてグラフが0幅になるのを防ぐため minmax を使用 */
-        grid-template-columns: var(--col-date) minmax(320px, 1fr) var(--col-metrics) minmax(
-            var(--col-note),
-            1fr
-          );
+        /* 2カラム: 日付 | 内容（内容は上下2段: グラフ/メタ） */
+        grid-template-columns: var(--col-date) 1fr;
         gap: 6px;
         align-items: center;
         padding: 2px 0;
@@ -145,6 +136,18 @@
         font-size: 12px;
         color: #444;
       }
+      .daycontent {
+        display: grid;
+        grid-template-rows: auto auto;
+        row-gap: 4px;
+        align-items: start;
+      }
+      .meta {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        min-height: 14px;
+      }
       .metrics {
         font-size: 12px;
         color: #333;
@@ -158,6 +161,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        flex: 1;
       }
       .grid48 {
         display: grid;
@@ -246,17 +250,13 @@
     </div>
     <div class="colhead" aria-hidden="false">
       <div>日付</div>
-      <div>グラフ（0:00→24:00）</div>
-      <div>指標</div>
-      <div>備考</div>
+      <div>グラフ／指標・備考</div>
     </div>
     <div class="timescale" aria-hidden="false">
       <div></div>
       <div>
         <div class="timegrid" id="timegrid"></div>
       </div>
-      <div></div>
-      <div></div>
     </div>
     <div class="monthwrap" id="monthwrap"></div>
     <script>
@@ -566,6 +566,8 @@
           dateEl.textContent = d.slice(8, 10);
           dateEl.title = d; // フル日付
           row.appendChild(dateEl);
+          const content = document.createElement('div');
+          content.className = 'daycontent';
           const grid = document.createElement('div');
           grid.className = 'grid48';
           const bySlot = new Map((j.activities || []).map((a) => [a.slot, a]));
@@ -578,8 +580,8 @@
             c.title = String(a?.label || '');
             grid.appendChild(c);
           }
-          row.appendChild(grid);
-          // 3列目: 指標
+          content.appendChild(grid);
+          // メタ行: 指標 + 備考
           const metricsEl = document.createElement('div');
           metricsEl.className = 'metrics';
           const mm = Number(j?.sleep_minutes || 0);
@@ -601,13 +603,16 @@
               mmm.night | 0
             }${nt ? ' / メモあり' : ''}`;
           }
-          row.appendChild(metricsEl);
-          // 4列目: 備考（note）
           const noteEl = document.createElement('div');
           noteEl.className = 'note';
           noteEl.textContent = nt;
           noteEl.title = nt;
-          row.appendChild(noteEl);
+          const meta = document.createElement('div');
+          meta.className = 'meta';
+          meta.appendChild(metricsEl);
+          meta.appendChild(noteEl);
+          content.appendChild(meta);
+          row.appendChild(content);
           row.addEventListener('click', () => {
             const u = new URL('./', location.href);
             u.searchParams.set('date', d);
