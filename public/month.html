@@ -348,9 +348,13 @@
           lg.appendChild(dv);
         }
         // --- helpers for rendering modes
-        const GAP_PX_DEFAULT = 2;
+        function cssNumber(v, def) {
+          const n = parseFloat(String(v || '').trim());
+          return Number.isFinite(n) ? n : def;
+        }
         function measureSlot(container) {
-          const gap = GAP_PX_DEFAULT;
+          const root = getComputedStyle(document.documentElement);
+          const gap = cssNumber(root.getPropertyValue('--grid-gap'), 2);
           const full = container.clientWidth || 0;
           const slot = Math.max(1, Math.floor((full - 47 * gap) / 48));
           const width = slot * 48 + 47 * gap;
@@ -393,13 +397,14 @@
           for (let h = 0; h < 24; h++) {
             const x = (h * 2 - 1) * (slot + gap) + slot + gap / 2; // 中央
             const line = document.createElementNS(svg.namespaceURI, 'line');
-            const X = Math.round(x) + 0.5; // ピクセル中心
+            const X = Math.round(x) + (gap % 2 ? 0.5 : 0); // 偶奇で最適なアライメント
             line.setAttribute('x1', String(X));
             line.setAttribute('y1', '10');
             line.setAttribute('x2', String(X));
             line.setAttribute('y2', '26');
             line.setAttribute('stroke', '#777');
-            line.setAttribute('stroke-width', '2');
+            line.setAttribute('stroke-width', String(gap));
+            line.setAttribute('vector-effect', 'non-scaling-stroke');
             gLines.appendChild(line);
             const text = document.createElementNS(svg.namespaceURI, 'text');
             text.setAttribute('x', String(X));
@@ -410,14 +415,15 @@
             svg.appendChild(text);
           }
           // 24:00（右端）
-          const Xend = Math.round(width) + 0.5;
+          const Xend = Math.round(width) + (gap % 2 ? 0.5 : 0);
           const lEnd = document.createElementNS(svg.namespaceURI, 'line');
           lEnd.setAttribute('x1', String(Xend));
           lEnd.setAttribute('y1', '10');
           lEnd.setAttribute('x2', String(Xend));
           lEnd.setAttribute('y2', '26');
           lEnd.setAttribute('stroke', '#777');
-          lEnd.setAttribute('stroke-width', '2');
+          lEnd.setAttribute('stroke-width', String(gap));
+          lEnd.setAttribute('vector-effect', 'non-scaling-stroke');
           svg.appendChild(gLines);
           svg.appendChild(lEnd);
           holder.appendChild(svg);
