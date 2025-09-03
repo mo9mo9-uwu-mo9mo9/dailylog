@@ -92,6 +92,7 @@
         border-left: 2px solid #777; /* 1時間毎の線: 濃さ/太さを統一して視認性を向上 */
         height: 16px; /* 高さも統一 */
         width: 0; /* 余計なセル幅をとらず、境界線の左辺に固定 */
+        left: calc(var(--grid-gap) / -2); /* ギャップの中心に線が来るよう半分だけ左にシフト */
       }
       .timegrid .tick.major {
         border-left-color: #777;
