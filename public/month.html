@@ -74,27 +74,29 @@
         align-items: center;
         color: #666;
         font-size: 11px;
+        padding-top: 10px; /* 上側に余白を追加してラベル高さを安定化 */
+        padding-bottom: 4px; /* 下側にも少し余白 */
       }
       .timegrid {
         display: grid;
         grid-template-columns: repeat(24, 1fr);
         column-gap: var(--grid-gap);
-        height: 26px; /* ラベルを線の上に載せるため余白を確保 */
+        height: 16px; /* 目盛り線の高さを統一 */
         align-items: end;
         position: relative; /* 24:00 境界線とラベルのため */
       }
       .timegrid .tick {
         position: relative;
-        border-left: 1px solid #ddd;
-        height: 12px;
+        border-left: 1px solid #999; /* 1時間毎の線: 濃さを統一してやや濃く */
+        height: 16px; /* 高さも統一 */
       }
       .timegrid .tick.major {
-        border-left-color: #aaa;
-        height: 14px;
+        border-left-color: #999;
+        height: 16px;
       }
       .timegrid .tick .lab {
         position: absolute;
-        bottom: calc(100% + 2px); /* 目盛線の上側に配置 */
+        bottom: calc(100% + 4px); /* 線の上に余白を持たせて配置 */
         transform: translateX(-50%);
         left: 0;
         font-size: 10px;
@@ -112,7 +114,7 @@
       .timegrid .end-label {
         position: absolute;
         right: 0;
-        bottom: 16px; /* 24:00 線の上に表示 */
+        bottom: 20px; /* 16px(線高) + 4px(オフセット) */
         transform: translateX(50%);
         font-size: 11px;
         color: #666;
