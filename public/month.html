@@ -361,6 +361,21 @@
           return { slot, gap, width };
         }
 
+        async function waitForSizing() {
+          const holder = document.getElementById('timegrid');
+          const wrap = holder?.parentElement || document.body;
+          // 最大5フレーム待ってレイアウトを安定させる
+          for (let i = 0; i < 5; i++) {
+            const s = measureSlot(wrap);
+            if (s.width > 48) return s;
+            await new Promise((r) => requestAnimationFrame(() => r()));
+          }
+          // フォールバック: monthwrap 幅で計測
+          const mw = document.getElementById('monthwrap');
+          const fb = measureSlot(mw || wrap);
+          return fb.width > 48 ? fb : { slot: 16, gap: 2, width: 16 * 48 + 2 * 47 };
+        }
+
         function buildTimegridCSS() {
           const tg = document.getElementById('timegrid');
           if (!tg) return;
@@ -675,7 +690,8 @@
         const tsHolder = document.getElementById('timegrid');
         let sizing;
         if (render === 'svg') {
-          sizing = buildTimegridSVG();
+          sizing = await waitForSizing();
+          buildTimegridSVG(sizing);
         } else {
           buildTimegridCSS();
         }
