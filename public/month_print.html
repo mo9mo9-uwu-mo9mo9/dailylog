@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>月次印刷（前半/後半）｜生活行動表</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      :root {
+        --cell-h: 12px; /* 印刷は少し密に */
+        --grid-gap: 1px;
+        --cell-radius: 0;
+        --cell-border: 0;
+        --col-date: 12mm; /* 印刷時はmmで安定させる */
+        --col-metrics: 36mm;
+        --col-note: 56mm;
+      }
+      body {
+        padding: 8px;
+      }
+      .head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .head h2 {
+        margin: 0;
+        font-size: 16px;
+      }
+      .legend {
+        font-size: 11px;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+        margin-left: auto;
+      }
+      .legend div {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .box {
+        width: 10px;
+        height: 10px;
+        border: 1px solid #333;
+      }
+
+      .colhead {
+        display: grid;
+        grid-template-columns: var(--col-date) 1fr var(--col-metrics) var(--col-note);
+        gap: 6px;
+        align-items: center;
+        font-size: 12px;
+        color: #333;
+        margin-top: 6px;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 3px;
+      }
+      .colhead div {
+        font-weight: 700;
+      }
+
+      .section {
+        page-break-after: always;
+        margin-top: 6px;
+      }
+      .sectitle {
+        font-size: 13px;
+        color: #333;
+        margin: 4px 0;
+      }
+      .timescale {
+        display: grid;
+        grid-template-columns: var(--col-date) 1fr var(--col-metrics) var(--col-note);
+        gap: 6px;
+        align-items: center;
+        color: #666;
+        font-size: 11px;
+      }
+      .timegrid {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(24, 1fr);
+        column-gap: var(--grid-gap);
+        height: 16px;
+        align-items: end;
+      }
+      .timegrid .tick {
+        position: relative;
+        border-left: 1px solid #ddd;
+        height: 12px;
+      }
+      .timegrid .tick.major {
+        border-left-color: #aaa;
+        height: 14px;
+      }
+      .timegrid .tick .lab {
+        position: absolute;
+        bottom: 0;
+        transform: translateX(-50%);
+        left: 0;
+      }
+      .timegrid::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        border-left: 1px solid #aaa;
+        height: 14px;
+      }
+      .timegrid .end-label {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        transform: translateX(50%);
+        font-size: 11px;
+        color: #666;
+      }
+
+      .rows {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2px;
+      }
+      .dayrow {
+        display: grid;
+        grid-template-columns: var(--col-date) 1fr var(--col-metrics) var(--col-note);
+        gap: 6px;
+        align-items: center;
+        border-bottom: 0.2mm solid #000;
+        padding: 1px 0;
+      }
+      .rows .dayrow:first-child {
+        border-top: 0.2mm solid #000;
+      }
+      .daydate {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: var(--cell-h);
+        line-height: var(--cell-h);
+        font-weight: 700;
+        font-size: 12px;
+      }
+      .grid48 {
+        display: grid;
+        grid-template-columns: repeat(24, 1fr);
+        gap: var(--grid-gap);
+      }
+      .cell {
+        height: var(--cell-h);
+        border: var(--cell-border);
+        border-radius: var(--cell-radius);
+      }
+      .metrics,
+      .note {
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      @page {
+        size: A4 landscape;
+        margin: 8mm;
+      }
+      @media print {
+        .noprint {
+          display: none;
+        }
+        * {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="head noprint">
+      <h2>月次印刷（前半/後半）</h2>
+      <div class="legend" id="legend"></div>
+      <label style="display: flex; align-items: center; gap: 6px">
+        サンプル
+        <select id="selSample">
+          <option value="0">実データ</option>
+          <option value="1">サンプル1: 標準勤務日</option>
+          <option value="2">サンプル2: 夜勤日</option>
+          <option value="3">サンプル3: 学習集中日</option>
+          <option value="4">サンプル4: 旅行日</option>
+          <option value="5" selected>サンプル5: 家族・ケア日</option>
+          <option value="6">サンプル6: 回復（休養）日</option>
+        </select>
+      </label>
+      <button id="btnPrint">印刷</button>
+    </div>
+
+    <div id="container"></div>
+
+    <script>
+      (async function () {
+        const q = new URLSearchParams(location.search);
+        const m = q.get('month') || new Date().toISOString().slice(0, 7);
+        const sampleId = parseInt(q.get('sample') || '5', 10) || 0;
+        document.title = `月次印刷 ${m}`;
+
+        const lg = document.getElementById('legend');
+        const CATS = [
+          ['sleep', '睡眠'],
+          ['work', '仕事'],
+          ['study', '勉強'],
+          ['move', '移動'],
+          ['meal', '食事'],
+          ['exercise', '運動'],
+          ['house', '家事'],
+          ['family', '家族・ケア'],
+          ['rest', '休憩'],
+          ['other', 'その他'],
+        ];
+        for (const [v, lab] of CATS) {
+          const dv = document.createElement('div');
+          const bx = document.createElement('span');
+          bx.className = 'box cat-' + v;
+          dv.appendChild(bx);
+          const sp = document.createElement('span');
+          sp.textContent = lab;
+          dv.appendChild(sp);
+          lg.appendChild(dv);
+        }
+
+        function daysInMonth(ym) {
+          const [Y, MM] = ym.split('-').map(Number);
+          const last = new Date(Y, MM, 0).getDate();
+          const out = [];
+          for (let d = 1; d <= last; d++) out.push(`${ym}-${String(d).padStart(2, '0')}`);
+          return out;
+        }
+        const slot = (h, m) => h * 2 + (m >= 30 ? 1 : 0);
+        function samplePlanForDay(d, sample) {
+          const acts = [];
+          const push = (start, end, cat, label) => { for (let i = start; i < end; i++) acts.push({ slot: i, label, category: cat }); };
+          const PB = (h1, m1, h2, m2, cat, label) => push(slot(h1, m1), slot(h2, m2), cat, label);
+          switch (sample) {
+            case 5:
+              PB(0, 0, 6, 30, 'sleep', '睡眠'); PB(6, 30, 8, 0, 'house', '家事'); PB(8, 0, 12, 0, 'family', '家族・ケア'); PB(12, 0, 13, 0, 'meal', '食事'); PB(13, 0, 16, 0, 'family', '家族・ケア'); PB(16, 0, 17, 0, 'move', '移動'); PB(17, 0, 18, 0, 'exercise', '運動'); PB(18, 0, 20, 0, 'family', '家族・ケア'); PB(20, 0, 21, 0, 'meal', '食事'); PB(21, 0, 22, 0, 'house', '家事'); PB(22, 0, 24, 0, 'rest', '休憩');
+              break;
+            default:
+              PB(0, 0, 7, 0, 'sleep', '睡眠'); PB(7, 0, 8, 0, 'house', '家事'); PB(8, 0, 9, 0, 'move', '移動'); PB(9, 0, 12, 0, 'work', '仕事'); PB(12, 0, 13, 0, 'meal', '食事'); PB(13, 0, 17, 0, 'work', '仕事'); PB(17, 0, 18, 30, 'study', '勉強'); PB(18, 30, 19, 30, 'exercise', '運動'); PB(19, 30, 21, 0, 'family', '家族・ケア'); PB(21, 0, 22, 0, 'meal', '食事'); PB(22, 0, 24, 0, 'sleep', '睡眠');
+          }
+          return acts;
+        }
+        function sampleMetricsForDay(d) {
+          const dd = Number(d.slice(8, 10));
+          const notes = ['買い出し・作り置き', '送迎: 朝/夕', '通院付添・処方受取', 'リハビリ同行メモ', '学校行事: 懇談会', '看護記録の更新', '夜間対応: 2回起床'];
+          let note = notes[(dd - 1) % notes.length];
+          if (dd % 9 === 0) note = '長文: ケア計画の見直し案。役割分担、頻度、負担分散について関係者へ相談予定。';
+          return { sleep_minutes: 6 * 60 + 30, fatigue: { morning: 3, noon: 4, night: 4 }, mood: { morning: 7, noon: 7, night: 6 }, note };
+        }
+        function toHM(mins) { const h = Math.floor(mins / 60); const m2 = mins % 60; return `${h}:${String(m2).padStart(2, '0')}`; }
+
+        function buildTimeGrid(el) {
+          for (let h = 0; h < 24; h++) {
+            const tk = document.createElement('div'); tk.className = 'tick' + (h % 6 === 0 ? ' major' : '');
+            if (h % 6 === 0) { const lab = document.createElement('span'); lab.className = 'lab'; lab.textContent = String(h).padStart(2, '0') + ':00'; tk.appendChild(lab); }
+            el.appendChild(tk);
+          }
+          const endLab = document.createElement('span'); endLab.className = 'end-label'; endLab.textContent = '24:00'; el.appendChild(endLab);
+        }
+
+        function buildSection(title, days) {
+          const sec = document.createElement('section'); sec.className = 'section';
+          const h = document.createElement('div'); h.className = 'sectitle'; h.textContent = `${title} ${m}`; sec.appendChild(h);
+          const ch = document.createElement('div'); ch.className = 'colhead'; ch.innerHTML = '<div>日付</div><div>グラフ（0:00→24:00）</div><div>指標</div><div>備考</div>'; sec.appendChild(ch);
+          const ts = document.createElement('div'); ts.className = 'timescale'; ts.innerHTML = '<div></div><div><div class="timegrid"></div></div><div></div><div></div>'; sec.appendChild(ts);
+          buildTimeGrid(ts.querySelector('.timegrid'));
+          const rows = document.createElement('div'); rows.className = 'rows'; sec.appendChild(rows);
+          for (const d of days) {
+            let j;
+            if (sampleId > 0) j = { activities: samplePlanForDay(d, sampleId), ...sampleMetricsForDay(d) };
+            else { const r = await fetch(`api/day?date=${d}`); j = await r.json(); }
+            const row = document.createElement('div'); row.className = 'dayrow';
+            const dateEl = document.createElement('div'); dateEl.className = 'daydate'; dateEl.textContent = d.slice(8, 10); dateEl.title = d; row.appendChild(dateEl);
+            const grid = document.createElement('div'); grid.className = 'grid48'; const bySlot = new Map((j.activities || []).map((a) => [a.slot, a])); for (let i = 0; i < 48; i++) { const c = document.createElement('div'); c.className = 'cell'; const a = bySlot.get(i); const cat = a?.category || 'other'; c.classList.add('cat-' + cat); c.title = String(a?.label || ''); grid.appendChild(c); } row.appendChild(grid);
+            const mm = Number(j?.sleep_minutes || 0); const f = j?.fatigue || {}; const mmm = j?.mood || {}; const nt = String(j?.note || '').trim(); const parts = []; if (mm > 0) parts.push(`睡${toHM(mm)}`); const fSum = (f.morning | 0) + (f.noon | 0) + (f.night | 0); if (fSum > 0) parts.push(`疲${f.morning | 0}/${f.noon | 0}/${f.night | 0}`); const mSum = (mmm.morning | 0) + (mmm.noon | 0) + (mmm.night | 0); if (mSum > 0) parts.push(`気${mmm.morning | 0}/${mmm.noon | 0}/${mmm.night | 0}`); if (nt.length > 0) parts.push('📝');
+            const metricsEl = document.createElement('div'); metricsEl.className = 'metrics'; metricsEl.textContent = parts.join(' '); metricsEl.title = parts.length ? `睡眠:${mm > 0 ? toHM(mm) : '-'} / 疲労:${f.morning | 0}/${f.noon | 0}/${f.night | 0} / 気分:${mmm.morning | 0}/${mmm.noon | 0}/${mmm.night | 0}${nt ? ' / メモあり' : ''}` : ''; row.appendChild(metricsEl);
+            const noteEl = document.createElement('div'); noteEl.className = 'note'; noteEl.textContent = nt; noteEl.title = nt; row.appendChild(noteEl);
+            rows.appendChild(row);
+          }
+          return sec;
+        }
+
+        const allDays = daysInMonth(m);
+        const first = allDays.slice(0, 15);
+        const second = allDays.slice(15);
+        const container = document.getElementById('container');
+        container.appendChild(await buildSection('前半', first));
+        container.appendChild(await buildSection('後半', second));
+
+        document.getElementById('btnPrint')?.addEventListener('click', () => window.print());
+        const sel = document.getElementById('selSample'); if (sel) { sel.value = String(sampleId); sel.addEventListener('change', () => { const u = new URL(location.href); u.searchParams.set('sample', sel.value); location.href = u.toString(); }); }
+      })();
+    </script>
+  </body>
+</html>
