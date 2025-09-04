@@ -14,6 +14,7 @@
         --col-date: 12mm; /* 印刷時はmmで安定させる */
         --col-metrics: 36mm;
         --col-note: 56mm;
+        --note-lines: 1; /* 備考の最大行数（1 or 2） */
       }
       body {
         padding: 8px;
@@ -55,6 +56,7 @@
         margin-top: 6px;
         border-bottom: 1px solid #ccc;
         padding-bottom: 3px;
+        break-inside: avoid;
       }
       .colhead div {
         font-weight: 700;
@@ -129,6 +131,8 @@
         align-items: center;
         border-bottom: 0.2mm solid #000;
         padding: 1px 0;
+        break-inside: avoid; /* 行分割防止 */
+        page-break-inside: avoid;
       }
       .rows .dayrow:first-child {
         border-top: 0.2mm solid #000;
@@ -152,12 +156,27 @@
         border: var(--cell-border);
         border-radius: var(--cell-radius);
       }
-      .metrics,
-      .note {
+      .metrics {
         font-size: 12px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+      .note {
+        font-size: 12px;
+        color: #444;
+        overflow: hidden;
+        /* 1行既定 → 2行オプション（-webkit-line-clamp） */
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: var(--note-lines);
+      }
+      /* Fallback: 非WebKit での2行制限 */
+      @supports not (-webkit-line-clamp: 2) {
+        .note {
+          line-height: 1.2;
+          max-height: calc(1.2em * var(--note-lines));
+        }
       }
 
       @page {
@@ -190,6 +209,10 @@
           <option value="5" selected>サンプル5: 家族・ケア日</option>
           <option value="6">サンプル6: 回復（休養）日</option>
         </select>
+      </label>
+      <label style="display: flex; align-items: center; gap: 6px">
+        備考2行
+        <input type="checkbox" id="chkNote2" />
       </label>
       <button id="btnPrint">印刷</button>
     </div>
@@ -405,6 +428,19 @@
           sel.addEventListener('change', () => {
             const u = new URL(location.href);
             u.searchParams.set('sample', sel.value);
+            location.href = u.toString();
+          });
+        }
+
+        // 備考2行オプション
+        const linesParam = Math.max(1, Math.min(2, parseInt(q.get('note_lines') || '1', 10) || 1));
+        document.documentElement.style.setProperty('--note-lines', String(linesParam));
+        const chk2 = document.getElementById('chkNote2');
+        if (chk2) {
+          chk2.checked = linesParam === 2;
+          chk2.addEventListener('change', () => {
+            const u = new URL(location.href);
+            u.searchParams.set('note_lines', chk2.checked ? '2' : '1');
             location.href = u.toString();
           });
         }
