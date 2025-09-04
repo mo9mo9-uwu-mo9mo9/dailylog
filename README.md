@@ -105,6 +105,63 @@ gh issue create \
 - サービス名: `dailylog.service`、作業ディレクトリ: `/srv/dailylog`。
 - 再起動: `sudo systemctl restart dailylog`、疎通: `curl -u $AUTH_USER:$AUTH_PASS http://127.0.0.1:$PORT/api/health`。
 
+### 本番ポートの統一（PORT=3002）
+
+- 目的: GitHub Actions の "Deploy (production)" が `http://127.0.0.1:3002/api/health` をヘルスチェックするため、実サーバの待受ポートも 3002 に統一します。
+- 実装状況:
+  - `server.js` の既定ポートを `3002` に変更（`.env`/systemd 未設定時でも 3002 で起動）。
+  - デプロイワークフローは 3002 を前提に疎通確認。
+- 推奨設定（systemd の例）: `scripts/systemd/dailylog.service`
+
+```ini
+[Unit]
+Description=DailyLog (Node.js) service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/srv/dailylog
+Environment=NODE_ENV=production
+Environment=PORT=3002
+EnvironmentFile=-/srv/dailylog/.env  # .env があれば上書き
+ExecStart=/usr/bin/env node /srv/dailylog/server.js
+Restart=always
+RestartSec=3
+User=dailylog
+Group=dailylog
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/srv/dailylog /srv/dailylog/data
+
+[Install]
+WantedBy=multi-user.target
+```
+
+- `.env` の例（本番）: `PORT=3002` を必ず含める
+
+```env
+PORT=3002
+DATA_DIR=/srv/dailylog/data
+DB_FILE=dailylog.db
+# AUTH_USER=...
+# AUTH_PASS=...
+```
+
+- 確認コマンド:
+  - `journalctl -u dailylog -b --no-pager | tail -n 20` に `Listening on http://127.0.0.1:3002` が出力されること
+  - `curl -i http://127.0.0.1:3002/api/health` が `200` または `401` を返すこと
+
+初回インストール（例）:
+
+```bash
+sudo install -m 644 -o root -g root scripts/systemd/dailylog.service /etc/systemd/system/dailylog.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now dailylog
+```
+
 ### Runner 設定ファイル（ローカル機密設定）
 
 - 読み込み優先: `local/runner.env` → （後方互換）`tmp/local/runner.env`。
