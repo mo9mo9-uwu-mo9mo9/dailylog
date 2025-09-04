@@ -227,12 +227,14 @@
         }
         .rows .dayrow .note .note-inner {
           line-height: 1.2 !important;
-          max-height: calc(1.2em * var(--note-lines)) !important; /* 1 or 2 行上限 */
+          /* Chrome印刷対策: WebKit系の2行クランプを利用 */
+          display: -webkit-box !important;
+          -webkit-box-orient: vertical !important;
+          -webkit-line-clamp: var(--note-lines) !important; /* 1 or 2 */
           overflow: hidden !important;
           overflow-wrap: anywhere !important;
           word-break: break-word !important;
           white-space: normal !important;
-          display: block !important;
         }
         .noprint {
           display: none;
