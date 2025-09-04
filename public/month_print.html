@@ -14,6 +14,32 @@
         --col-date: 12mm; /* 印刷時はmmで安定させる */
         --col-metrics: 36mm;
         --col-note: 56mm;
+        /* 備考の行数（1|2）。note-2 クラスで上書き */
+        --note-lines: 1;
+      }
+      /* Debugモードの極端なスタイル（反映確認用） */
+      body.debug-print {
+        outline: 6px solid #ff00a8;
+        background: repeating-linear-gradient(
+          45deg,
+          #fff0f8 0,
+          #fff0f8 10px,
+          #ffffff 10px,
+          #ffffff 20px
+        );
+      }
+      body.debug-print .note {
+        background: #fff59d !important;
+      }
+      body.debug-print .note .note-inner {
+        font-size: 16px !important;
+      }
+      body.debug-print .daydate {
+        background: #000;
+        color: #fff;
+      }
+      :root.note-2 {
+        --note-lines: 2;
       }
       body {
         padding: 8px;
@@ -55,6 +81,7 @@
         margin-top: 6px;
         border-bottom: 1px solid #ccc;
         padding-bottom: 3px;
+        break-inside: avoid;
       }
       .colhead div {
         font-weight: 700;
@@ -126,9 +153,11 @@
         display: grid;
         grid-template-columns: var(--col-date) 1fr var(--col-metrics) var(--col-note);
         gap: 6px;
-        align-items: center;
+        align-items: start;
         border-bottom: 0.2mm solid #000;
         padding: 1px 0;
+        break-inside: avoid; /* 行分割防止 */
+        page-break-inside: avoid;
       }
       .rows .dayrow:first-child {
         border-top: 0.2mm solid #000;
@@ -152,12 +181,29 @@
         border: var(--cell-border);
         border-radius: var(--cell-radius);
       }
-      .metrics,
-      .note {
+      .metrics {
         font-size: 12px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+      .note {
+        font-size: 12px;
+        color: #444;
+        overflow: visible; /* ← 省略記号連鎖を断つ */
+        display: block;
+        min-width: 0; /* Grid内で折返し可能に */
+      }
+      /* 画面/印刷共通のデフォルト（1行）: innerを1行に見せる */
+      .note .note-inner {
+        display: block;
+        line-height: 1.2;
+        max-height: 1.2em; /* 既定1行 */
+        overflow: hidden;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        white-space: normal;
+        text-overflow: clip;
       }
 
       @page {
@@ -165,6 +211,52 @@
         margin: 8mm;
       }
       @media print {
+        /* 印刷時はテーブルレイアウトで安定化 */
+        .rows {
+          display: table;
+          width: 100%;
+          table-layout: fixed;
+          border-collapse: separate;
+          border-spacing: 0 2px; /* 行間を維持 */
+        }
+        .dayrow {
+          display: table-row;
+          page-break-inside: avoid;
+        }
+        .daydate,
+        .graph,
+        .metrics,
+        .note {
+          display: table-cell;
+          vertical-align: top;
+        }
+        .daydate {
+          width: var(--col-date);
+        }
+        .metrics {
+          width: var(--col-metrics);
+        }
+        .note {
+          width: var(--col-note);
+        }
+
+        /* 複数行折返しを確実に */
+        .rows .dayrow .note {
+          white-space: normal !important;
+          text-overflow: clip !important;
+          min-width: 0;
+        }
+        .rows .dayrow .note .note-inner {
+          line-height: 1.2 !important;
+          /* Chrome印刷対策: WebKit系の2行クランプを利用 */
+          display: -webkit-box !important;
+          -webkit-box-orient: vertical !important;
+          -webkit-line-clamp: var(--note-lines) !important; /* 1 or 2 */
+          overflow: hidden !important;
+          overflow-wrap: anywhere !important;
+          word-break: break-word !important;
+          white-space: normal !important;
+        }
         .noprint {
           display: none;
         }
@@ -191,7 +283,15 @@
           <option value="6">サンプル6: 回復（休養）日</option>
         </select>
       </label>
+      <label style="display: flex; align-items: center; gap: 6px">
+        備考2行
+        <input type="checkbox" id="chkNote2" />
+      </label>
       <button id="btnPrint">印刷</button>
+      <label style="display: flex; align-items: center; gap: 6px" class="noprint">
+        Debug
+        <input type="checkbox" id="chkDebug" />
+      </label>
     </div>
 
     <div id="container"></div>
@@ -362,11 +462,20 @@
               c.title = String(a?.label || '');
               grid.appendChild(c);
             }
-            row.appendChild(grid);
+            const graphCell = document.createElement('div');
+            graphCell.className = 'graph';
+            graphCell.appendChild(grid);
+            row.appendChild(graphCell);
             const mm = Number(j?.sleep_minutes || 0);
             const f = j?.fatigue || {};
             const mmm = j?.mood || {};
-            const nt = String(j?.note || '').trim();
+            let nt = String(j?.note || '').trim();
+            // デモ用: 強制的に長文にして2行表示を確認
+            const forceTwo = (q.get('demo_note2') || '') === '1';
+            if (forceTwo) {
+              const base = nt || '長文: デモ用テキスト。折返しと2行表示の確認を行います。';
+              nt = base + '｜ケア計画の見直し・役割分担・頻度・負担分散について関係者へ共有予定。';
+            }
             const parts = [];
             if (mm > 0) parts.push(`睡${toHM(mm)}`);
             const fSum = (f.morning | 0) + (f.noon | 0) + (f.night | 0);
@@ -383,8 +492,11 @@
             row.appendChild(metricsEl);
             const noteEl = document.createElement('div');
             noteEl.className = 'note';
-            noteEl.textContent = nt;
             noteEl.title = nt;
+            const span = document.createElement('span');
+            span.className = 'note-inner';
+            span.textContent = nt;
+            noteEl.appendChild(span);
             row.appendChild(noteEl);
             rows.appendChild(row);
           }
@@ -408,6 +520,44 @@
             location.href = u.toString();
           });
         }
+
+        // 備考2行オプション
+        const linesParam = Math.max(1, Math.min(2, parseInt(q.get('note_lines') || '1', 10) || 1));
+        document.documentElement.classList.toggle('note-2', linesParam === 2);
+        const chk2 = document.getElementById('chkNote2');
+        if (chk2) {
+          chk2.checked = linesParam === 2;
+          chk2.addEventListener('change', () => {
+            const u = new URL(location.href);
+            u.searchParams.set('note_lines', chk2.checked ? '2' : '1');
+            location.href = u.toString();
+          });
+        }
+
+        // Debugモード（極端な見た目変更で反映確認）
+        const dbg = (q.get('debug') || '0') === '1';
+        const chkDbg = document.getElementById('chkDebug');
+        if (chkDbg) chkDbg.checked = dbg;
+        function applyDebug(on) {
+          document.body.classList.toggle('debug-print', !!on);
+          const bannerId = 'debug-banner';
+          document.getElementById(bannerId)?.remove();
+          if (on) {
+            const b = document.createElement('div');
+            b.id = bannerId;
+            b.textContent = `DEBUG ${new Date().toISOString()}`;
+            b.style.cssText =
+              'position:fixed;top:0;left:0;right:0;z-index:9999;background:#ff00a8;color:#fff;padding:6px 10px;font-weight:800;text-align:center;';
+            document.body.appendChild(b);
+          }
+        }
+        applyDebug(dbg);
+        if (chkDbg)
+          chkDbg.addEventListener('change', () => {
+            const u = new URL(location.href);
+            u.searchParams.set('debug', chkDbg.checked ? '1' : '0');
+            location.href = u.toString();
+          });
       })();
     </script>
   </body>
