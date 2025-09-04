@@ -2,7 +2,7 @@ name: Deploy Alerts
 
 on:
   workflow_run:
-    workflows: ["Deploy (production)"]
+    workflows: ['Deploy (production)']
     types: [completed]
 
 permissions:
@@ -70,4 +70,3 @@ jobs:
             } else {
               core.info('No open failure issue to close.');
             }
-
