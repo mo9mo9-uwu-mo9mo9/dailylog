@@ -2,7 +2,7 @@ name: Deploy Alerts
 
 on:
   workflow_run:
-    workflows: ['Deploy (production)']
+    workflows: ['Deploy (production)', 'Deploy (develop)']
     types: [completed]
 
 permissions:
@@ -22,7 +22,8 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const wr = context.payload.workflow_run;
-            const title = `infra: Deploy (production) 失敗通知`;
+            const isDev = wr.name === 'Deploy (develop)';
+            const title = isDev ? `infra: Deploy (develop) 失敗通知` : `infra: Deploy (production) 失敗通知`;
             const labels = ["type:infra", "priority:P0"]; // P0: 要即時対応
             const assignees = ["mo9mo9-uwu-mo9mo9"];
 
@@ -60,7 +61,8 @@ jobs:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const title = `infra: Deploy (production) 失敗通知`;
+            const isDev = context.payload.workflow_run?.name === 'Deploy (develop)';
+            const title = isDev ? `infra: Deploy (develop) 失敗通知` : `infra: Deploy (production) 失敗通知`;
             const { data: issues } = await github.rest.issues.listForRepo({ owner, repo, state: 'open', per_page: 100, labels: 'type:infra,priority:P0' });
             const found = issues.find(i => i.title === title);
             if (found) {

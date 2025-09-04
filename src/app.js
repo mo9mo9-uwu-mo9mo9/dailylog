@@ -16,6 +16,11 @@ function createApp(opts = {}) {
   app.use(compression());
   app.use(express.json({ limit: '1mb' }));
 
+  // Base path for hosting under a prefix (e.g., /dailylog, /dailylog-dev)
+  // Empty string or '/' means root
+  const BASE_PATH_RAW = (process.env.BASE_PATH || '').trim();
+  const BASE_PATH = BASE_PATH_RAW && BASE_PATH_RAW !== '/' ? BASE_PATH_RAW : '';
+
   // Optional Basic Auth (enabled when AUTH_USER/PASS are set)
   const AUTH_USER = opts?.auth?.user ?? process.env.AUTH_USER ?? '';
   const AUTH_PASS = opts?.auth?.pass ?? process.env.AUTH_PASS ?? '';
@@ -44,8 +49,10 @@ function createApp(opts = {}) {
   }
   app.use(basicAuth);
 
+  // --- API router (mounted at /api and, if BASE_PATH set, also at BASE_PATH + /api)
+  const api = express.Router();
   // Health
-  app.get('/api/health', (_req, res) => res.json({ ok: true }));
+  api.get('/health', (_req, res) => res.json({ ok: true }));
 
   // --- Helpers (DB statements)
   const getDayStmt = db.prepare('SELECT * FROM days WHERE date = ?');
@@ -89,8 +96,8 @@ function createApp(opts = {}) {
     return null;
   }
 
-  // --- API: GET /api/day
-  app.get('/api/day', (req, res) => {
+  // --- API: GET /day
+  api.get('/day', (req, res) => {
     const d = req.query.date;
     if (!isISODate(d)) return res.status(400).json({ error: 'bad date' });
     const row = getDayStmt.get(d) || {
@@ -115,8 +122,8 @@ function createApp(opts = {}) {
     });
   });
 
-  // --- API: POST /api/day
-  app.post('/api/day', (req, res) => {
+  // --- API: POST /day
+  api.post('/day', (req, res) => {
     const p = req.body || {};
     if (!isISODate(p.date)) return res.status(400).json({ error: 'bad date' });
     const payload = {
@@ -158,8 +165,8 @@ function createApp(opts = {}) {
     res.json({ ok: true });
   });
 
-  // --- API: GET /api/export?month=YYYY-MM (CSV)
-  app.get('/api/export', (req, res) => {
+  // --- API: GET /export?month=YYYY-MM (CSV)
+  api.get('/export', (req, res) => {
     const m = String(req.query.month || '');
     if (!/^\d{4}-\d{2}$/.test(m)) return res.status(400).json({ error: 'bad month' });
 
@@ -232,8 +239,8 @@ function createApp(opts = {}) {
     res.send(csv);
   });
 
-  // --- API: GET /api/month?month=YYYY-MM (JSON aggregate)
-  app.get('/api/month', (req, res) => {
+  // --- API: GET /month?month=YYYY-MM (JSON aggregate)
+  api.get('/month', (req, res) => {
     const m = String(req.query.month || '');
     if (!/^\d{4}-\d{2}$/.test(m)) return res.status(400).json({ error: 'bad month' });
 
@@ -308,9 +315,14 @@ function createApp(opts = {}) {
     return s;
   }
 
-  // Static files
+  // Mount API under /api and also under BASE_PATH + /api for reverse proxies with a prefix
+  app.use('/api', api);
+  if (BASE_PATH) app.use(BASE_PATH + '/api', api);
+
+  // Static files (serve at root and, if BASE_PATH set, also under BASE_PATH)
   const publicDir = path.join(process.cwd(), 'public');
   app.use(express.static(publicDir, { extensions: ['html'] }));
+  if (BASE_PATH) app.use(BASE_PATH, express.static(publicDir, { extensions: ['html'] }));
 
   return {
     app,
