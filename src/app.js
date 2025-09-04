@@ -52,6 +52,11 @@ function createApp(opts = {}) {
   const getActsStmt = db.prepare(
     'SELECT slot_index AS slot, label, category FROM activities WHERE date = ? ORDER BY slot_index'
   );
+  // month/export 用の集約クエリ（prepare をルートで共有）
+  const listDaysByLikeStmt = db.prepare('SELECT * FROM days WHERE date LIKE ? ORDER BY date');
+  const listActsByLikeStmt = db.prepare(
+    'SELECT date, slot_index AS slot, label, category FROM activities WHERE date LIKE ? ORDER BY date, slot_index'
+  );
   const upsertDayStmt = db.prepare(`INSERT INTO days (
     date, sleep_minutes, fatigue_morning, fatigue_noon, fatigue_night,
     mood_morning, mood_noon, mood_night, note
@@ -234,14 +239,10 @@ function createApp(opts = {}) {
 
     // Prepare queries
     const like = `${m}-%`;
-    const daysStmt = db.prepare('SELECT * FROM days WHERE date LIKE ? ORDER BY date');
-    const actsStmt = db.prepare(
-      'SELECT date, slot_index AS slot, label, category FROM activities WHERE date LIKE ? ORDER BY date, slot_index'
-    );
 
     // Build index of days and activities by date
     const byDate = Object.create(null);
-    for (const d of daysStmt.all(like)) {
+    for (const d of listDaysByLikeStmt.all(like)) {
       byDate[d.date] = {
         date: d.date,
         sleep_minutes: d.sleep_minutes,
@@ -252,7 +253,7 @@ function createApp(opts = {}) {
       };
     }
 
-    for (const a of actsStmt.all(like)) {
+    for (const a of listActsByLikeStmt.all(like)) {
       if (!byDate[a.date]) {
         byDate[a.date] = {
           date: a.date,
