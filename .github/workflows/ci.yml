@@ -19,12 +19,30 @@ jobs:
         with:
           node-version: 18.x
           cache: npm
-      - name: Install dependencies (non-blocking)
+      - name: Install dependencies
         id: npminstall
         run: |
           set +e
           npm install --no-audit --no-fund
-          echo "status=$?" >> $GITHUB_OUTPUT
+          echo "ok=$?" >> $GITHUB_OUTPUT
+      - name: Format (check only)
+        id: format
+        run: |
+          set +e
+          npm run format:check
+          echo "ok=$?" >> $GITHUB_OUTPUT
+      - name: Lint
+        id: lint
+        run: |
+          set +e
+          npx --yes eslint -c eslint.config.mjs . --ext js
+          echo "ok=$?" >> $GITHUB_OUTPUT
+      - name: Unit Test (vitest)
+        id: test
+        run: |
+          set +e
+          npm test -- --run
+          echo "ok=$?" >> $GITHUB_OUTPUT
       - name: Update PR body (mark npm install)
         if: always()
         uses: actions/github-script@v7
@@ -36,19 +54,45 @@ jobs:
             const fork = context.payload.pull_request.head.repo.full_name !== `${owner}/${repo}`;
             if (fork) {
               core.notice('Fork PRのため本文更新はスキップします。');
-              return;
-            }
-            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number });
-            let body = pr.body || '';
-            const original = body;
-            // 直後に [x] にしたいのは npm install 済み
-            body = body.replace(/- \[ \]\s*`?npm install`?\s*済み/u, '- [x] `npm install` 済み');
-            if (body !== original) {
-              await github.rest.pulls.update({ owner, repo, pull_number, body });
-              core.notice('「npm install 済み」を [x] に更新しました。');
             } else {
-              core.notice('更新不要（既に [x] または該当項目なし）。');
+              const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number });
+              let body = pr.body || '';
+              const original = body;
+              body = body.replace(/- \[ \]\s*`?npm install`?\s*済み/u, '- [x] `npm install` 済み');
+              if (body !== original) {
+                await github.rest.pulls.update({ owner, repo, pull_number, body });
+                core.notice('「npm install 済み」を [x] に更新しました。');
+              } else {
+                core.notice('更新不要（既に [x] または該当項目なし）。');
+              }
             }
+            // レビュー結果コメント（アップサート）
+            const runId = process.env.GITHUB_RUN_ID;
+            const toIcon = (ok) => ok === '0' ? '✅' : '❌';
+            const rows = [
+              `- npm install: ${toIcon(process.env.NPMINSTALL_OK)}`,
+              `- Prettier (check): ${toIcon(process.env.FORMAT_OK)}`,
+              `- ESLint: ${toIcon(process.env.LINT_OK)}`,
+              `- Unit Test: ${toIcon(process.env.TEST_OK)}`,
+              `- CI 緑（PR build）: ⏳ (build 後に更新)`
+            ].join('\n');
+            const header = '## Codex セルフレビュー結果 (pre)';
+            const marker = '<!-- codex:review-report -->';
+            const bodyText = `${marker}\n${header}\n\n${rows}\n\nRun: https://github.com/${owner}/${repo}/actions/runs/${runId}`;
+            const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number: pull_number, per_page: 100 });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body: bodyText });
+              core.notice('セルフレビュー結果コメントを更新しました。');
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: pull_number, body: bodyText });
+              core.notice('セルフレビュー結果コメントを作成しました。');
+            }
+        env:
+          NPMINSTALL_OK: ${{ steps.npminstall.outputs.ok }}
+          FORMAT_OK: ${{ steps.format.outputs.ok }}
+          LINT_OK: ${{ steps.lint.outputs.ok }}
+          TEST_OK: ${{ steps.test.outputs.ok }}
   build:
     runs-on: ubuntu-latest
     strategy:
@@ -114,4 +158,14 @@ jobs:
               core.notice('PR本文の「動作確認（必須）」の一部チェックを自動ONにしました。');
             } else {
               core.notice('更新不要（チェック済み、または該当項目なし）。');
+            }
+            // レビュー結果コメントを更新（CI 緑を反映）
+            const runId = process.env.GITHUB_RUN_ID;
+            const marker = '<!-- codex:review-report -->';
+            const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number: pull_number, per_page: 100 });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              const updated = existing.body.replace('CI 緑（PR build）: ⏳ (build 後に更新)', 'CI 緑（PR build）: ✅');
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body: updated + `\n(Updated by Auto Self Review) Run: https://github.com/${owner}/${repo}/actions/runs/${runId}` });
+              core.notice('セルフレビュー結果コメントに CI 緑 を反映しました。');
             }
