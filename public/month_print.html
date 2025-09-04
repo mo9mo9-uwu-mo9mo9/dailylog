@@ -14,7 +14,11 @@
         --col-date: 12mm; /* 印刷時はmmで安定させる */
         --col-metrics: 36mm;
         --col-note: 56mm;
-        /* 備考の最大行数はクラスで切替（note-2）既定1行 */
+        /* 備考の行数（1|2）。note-2 クラスで上書き */
+        --note-lines: 1;
+      }
+      :root.note-2 {
+        --note-lines: 2;
       }
       body {
         padding: 8px;
@@ -128,7 +132,7 @@
         display: grid;
         grid-template-columns: var(--col-date) 1fr var(--col-metrics) var(--col-note);
         gap: 6px;
-        align-items: center;
+        align-items: start;
         border-bottom: 0.2mm solid #000;
         padding: 1px 0;
         break-inside: avoid; /* 行分割防止 */
@@ -168,12 +172,11 @@
         overflow: hidden;
         display: block;
         line-height: 1.2;
-        max-height: 1.2em; /* 既定1行 */
+        height: calc(1.2em * var(--note-lines));
+        min-height: calc(1.2em * var(--note-lines));
         overflow-wrap: anywhere; /* 長文やCJK混在でも折返し */
         word-break: break-word;
-      }
-      :root.note-2 .note {
-        max-height: calc(1.2em * 2);
+        min-width: 0; /* Grid内で折返し可能に */
       }
 
       @page {
