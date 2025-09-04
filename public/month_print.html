@@ -166,24 +166,14 @@
         font-size: 12px;
         color: #444;
         overflow: hidden;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 1; /* 既定1行 */
+        display: block;
+        line-height: 1.2;
+        max-height: 1.2em; /* 既定1行 */
         overflow-wrap: anywhere; /* 長文やCJK混在でも折返し */
         word-break: break-word;
       }
       :root.note-2 .note {
-        -webkit-line-clamp: 2;
-      }
-      /* Fallback: 非WebKit での2行制限 */
-      @supports not (-webkit-line-clamp: 1) {
-        .note {
-          line-height: 1.2;
-          max-height: 1.2em;
-        }
-        :root.note-2 .note {
-          max-height: calc(1.2em * 2);
-        }
+        max-height: calc(1.2em * 2);
       }
 
       @page {
