@@ -190,10 +190,36 @@
         margin: 8mm;
       }
       @media print {
-        /* 印刷時は強制上書きで複数行折返しを有効化 */
-        .rows .dayrow {
-          align-items: start;
+        /* 印刷時はテーブルレイアウトで安定化 */
+        .rows {
+          display: table;
+          width: 100%;
+          table-layout: fixed;
+          border-collapse: separate;
+          border-spacing: 0 2px; /* 行間を維持 */
         }
+        .dayrow {
+          display: table-row;
+          page-break-inside: avoid;
+        }
+        .daydate,
+        .graph,
+        .metrics,
+        .note {
+          display: table-cell;
+          vertical-align: top;
+        }
+        .daydate {
+          width: var(--col-date);
+        }
+        .metrics {
+          width: var(--col-metrics);
+        }
+        .note {
+          width: var(--col-note);
+        }
+
+        /* 複数行折返しを確実に */
         .rows .dayrow .note {
           white-space: normal !important;
           text-overflow: clip !important;
@@ -409,7 +435,10 @@
               c.title = String(a?.label || '');
               grid.appendChild(c);
             }
-            row.appendChild(grid);
+            const graphCell = document.createElement('div');
+            graphCell.className = 'graph';
+            graphCell.appendChild(grid);
+            row.appendChild(graphCell);
             const mm = Number(j?.sleep_minutes || 0);
             const f = j?.fatigue || {};
             const mmm = j?.mood || {};
