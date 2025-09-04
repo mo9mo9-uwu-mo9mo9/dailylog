@@ -177,6 +177,8 @@
         overflow-wrap: anywhere; /* 長文やCJK混在でも折返し */
         word-break: break-word;
         min-width: 0; /* Grid内で折返し可能に */
+        white-space: normal; /* ← 重要: nowrap を上書きし折返しを許可 */
+        text-overflow: clip; /* 省略記号を無効化（複数行のため） */
       }
 
       @page {
