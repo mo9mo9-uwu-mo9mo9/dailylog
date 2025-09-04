@@ -227,6 +227,78 @@ function createApp(opts = {}) {
     res.send(csv);
   });
 
+  // --- API: GET /api/month?month=YYYY-MM (JSON aggregate)
+  app.get('/api/month', (req, res) => {
+    const m = String(req.query.month || '');
+    if (!/^\d{4}-\d{2}$/.test(m)) return res.status(400).json({ error: 'bad month' });
+
+    // Prepare queries
+    const like = `${m}-%`;
+    const daysStmt = db.prepare('SELECT * FROM days WHERE date LIKE ? ORDER BY date');
+    const actsStmt = db.prepare(
+      'SELECT date, slot_index AS slot, label, category FROM activities WHERE date LIKE ? ORDER BY date, slot_index'
+    );
+
+    // Build index of days and activities by date
+    const byDate = Object.create(null);
+    for (const d of daysStmt.all(like)) {
+      byDate[d.date] = {
+        date: d.date,
+        sleep_minutes: d.sleep_minutes,
+        fatigue: { morning: d.fatigue_morning, noon: d.fatigue_noon, night: d.fatigue_night },
+        mood: { morning: d.mood_morning, noon: d.mood_noon, night: d.mood_night },
+        note: d.note || '',
+        activities: [],
+      };
+    }
+
+    for (const a of actsStmt.all(like)) {
+      if (!byDate[a.date]) {
+        byDate[a.date] = {
+          date: a.date,
+          sleep_minutes: 0,
+          fatigue: { morning: 0, noon: 0, night: 0 },
+          mood: { morning: 0, noon: 0, night: 0 },
+          note: '',
+          activities: [],
+        };
+      }
+      byDate[a.date].activities.push({
+        slot: a.slot | 0,
+        label: a.label || '',
+        category: a.category || '',
+      });
+    }
+
+    // Ensure full month coverage (include days with no data)
+    function daysInMonth(ym) {
+      const [Y, MM] = ym.split('-').map(Number);
+      const last = new Date(Y, MM, 0).getDate();
+      const out = [];
+      for (let d = 1; d <= last; d++) out.push(`${ym}-${String(d).padStart(2, '0')}`);
+      return out;
+    }
+
+    const days = [];
+    for (const d of daysInMonth(m)) {
+      const row = byDate[d] || {
+        date: d,
+        sleep_minutes: 0,
+        fatigue: { morning: 0, noon: 0, night: 0 },
+        mood: { morning: 0, noon: 0, night: 0 },
+        note: '',
+        activities: [],
+      };
+      // Ensure activities are sorted by slot
+      if (Array.isArray(row.activities) && row.activities.length > 1) {
+        row.activities.sort((a, b) => (a.slot | 0) - (b.slot | 0));
+      }
+      days.push(row);
+    }
+
+    res.json({ month: m, days });
+  });
+
   function escapeCsv(v) {
     const s = String(v ?? '');
     if (s.includes('"') || s.includes(',') || s.includes('\n')) {
