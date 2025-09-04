@@ -396,7 +396,13 @@
             const mm = Number(j?.sleep_minutes || 0);
             const f = j?.fatigue || {};
             const mmm = j?.mood || {};
-            const nt = String(j?.note || '').trim();
+            let nt = String(j?.note || '').trim();
+            // デモ用: 強制的に長文にして2行表示を確認
+            const forceTwo = (q.get('demo_note2') || '') === '1';
+            if (forceTwo) {
+              const base = nt || '長文: デモ用テキスト。折返しと2行表示の確認を行います。';
+              nt = base + '｜ケア計画の見直し・役割分担・頻度・負担分散について関係者へ共有予定。';
+            }
             const parts = [];
             if (mm > 0) parts.push(`睡${toHM(mm)}`);
             const fSum = (f.morning | 0) + (f.noon | 0) + (f.night | 0);
