@@ -123,12 +123,18 @@ After=network-online.target
 Type=simple
 WorkingDirectory=/srv/dailylog
 Environment=NODE_ENV=production
-EnvironmentFile=-/srv/dailylog/.env
+Environment=PORT=3002
+EnvironmentFile=-/srv/dailylog/.env  # .env があれば上書き
 ExecStart=/usr/bin/env node /srv/dailylog/server.js
 Restart=always
 RestartSec=3
-#User=dailylog
-#Group=dailylog
+User=dailylog
+Group=dailylog
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/srv/dailylog /srv/dailylog/data
 
 [Install]
 WantedBy=multi-user.target
@@ -147,6 +153,14 @@ DB_FILE=dailylog.db
 - 確認コマンド:
   - `journalctl -u dailylog -b --no-pager | tail -n 20` に `Listening on http://127.0.0.1:3002` が出力されること
   - `curl -i http://127.0.0.1:3002/api/health` が `200` または `401` を返すこと
+
+初回インストール（例）:
+
+```bash
+sudo install -m 644 -o root -g root scripts/systemd/dailylog.service /etc/systemd/system/dailylog.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now dailylog
+```
 
 ### Runner 設定ファイル（ローカル機密設定）
 

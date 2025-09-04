@@ -8,8 +8,9 @@ Type=simple
 # アプリ配置先。Deploy ワークフローは /srv/dailylog を前提。
 WorkingDirectory=/srv/dailylog
 
-# 環境設定: 本番想定。機密は .env から読み込み（存在しない場合は無視）。
+# 環境設定: 本番想定。まず既定値、後段の .env で上書き可。
 Environment=NODE_ENV=production
+Environment=PORT=3002
 EnvironmentFile=-/srv/dailylog/.env
 
 # 実行コマンド（Node は PATH 上にあるものを優先して検出）
@@ -19,10 +20,16 @@ ExecStart=/usr/bin/env node /srv/dailylog/server.js
 Restart=always
 RestartSec=3
 
-# 実行ユーザー（必要に応じて有効化）
-#User=dailylog
-#Group=dailylog
+# 実行ユーザー（root常駐を避けるため有効化推奨）
+User=dailylog
+Group=dailylog
+
+# セキュリティ強化（必要書込のみ許可）
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/srv/dailylog /srv/dailylog/data
 
 [Install]
 WantedBy=multi-user.target
-
