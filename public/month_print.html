@@ -17,6 +17,27 @@
         /* 備考の行数（1|2）。note-2 クラスで上書き */
         --note-lines: 1;
       }
+      /* Debugモードの極端なスタイル（反映確認用） */
+      body.debug-print {
+        outline: 6px solid #ff00a8;
+        background: repeating-linear-gradient(
+          45deg,
+          #fff0f8 0,
+          #fff0f8 10px,
+          #ffffff 10px,
+          #ffffff 20px
+        );
+      }
+      body.debug-print .note {
+        background: #fff59d !important;
+      }
+      body.debug-print .note .note-inner {
+        font-size: 16px !important;
+      }
+      body.debug-print .daydate {
+        background: #000;
+        color: #fff;
+      }
       :root.note-2 {
         --note-lines: 2;
       }
@@ -267,6 +288,10 @@
         <input type="checkbox" id="chkNote2" />
       </label>
       <button id="btnPrint">印刷</button>
+      <label style="display: flex; align-items: center; gap: 6px" class="noprint">
+        Debug
+        <input type="checkbox" id="chkDebug" />
+      </label>
     </div>
 
     <div id="container"></div>
@@ -508,6 +533,31 @@
             location.href = u.toString();
           });
         }
+
+        // Debugモード（極端な見た目変更で反映確認）
+        const dbg = (q.get('debug') || '0') === '1';
+        const chkDbg = document.getElementById('chkDebug');
+        if (chkDbg) chkDbg.checked = dbg;
+        function applyDebug(on) {
+          document.body.classList.toggle('debug-print', !!on);
+          const bannerId = 'debug-banner';
+          document.getElementById(bannerId)?.remove();
+          if (on) {
+            const b = document.createElement('div');
+            b.id = bannerId;
+            b.textContent = `DEBUG ${new Date().toISOString()}`;
+            b.style.cssText =
+              'position:fixed;top:0;left:0;right:0;z-index:9999;background:#ff00a8;color:#fff;padding:6px 10px;font-weight:800;text-align:center;';
+            document.body.appendChild(b);
+          }
+        }
+        applyDebug(dbg);
+        if (chkDbg)
+          chkDbg.addEventListener('change', () => {
+            const u = new URL(location.href);
+            u.searchParams.set('debug', chkDbg.checked ? '1' : '0');
+            location.href = u.toString();
+          });
       })();
     </script>
   </body>
