@@ -1,0 +1,25 @@
+[Unit]
+Description=DailyLog (develop) service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/srv/dailylog-develop
+Environment=NODE_ENV=production
+Environment=PORT=3003
+EnvironmentFile=-/srv/dailylog-develop/.env
+ExecStart=/usr/bin/env node /srv/dailylog-develop/server.js
+Restart=always
+RestartSec=3
+User=dailylog
+Group=dailylog
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/srv/dailylog-develop /srv/dailylog-develop/data
+
+[Install]
+WantedBy=multi-user.target
+
