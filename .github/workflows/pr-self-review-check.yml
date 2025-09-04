@@ -1,0 +1,36 @@
+name: PR Self Review Check
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  check-self-review:
+    name: セルフレビュー欄の存在チェック
+    runs-on: ubuntu-latest
+    steps:
+      - name: PR本文のセルフレビュー欄を検査
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = (context.payload.pull_request && context.payload.pull_request.body) || "";
+            // 許容パターン:
+            //  - テンプレートの見出し: "## セルフレビュー（作成者・必須）"
+            //  - 厳密表記:          "セルフレビュー（作成者）"
+            const patterns = [
+              /(^|\n)##\s*セルフレビュー（作成者[^\n]*）/u,
+              /セルフレビュー（作成者）/u,
+            ];
+            const ok = patterns.some((re) => re.test(body));
+            if (!ok) {
+              core.setFailed(
+                'PR本文に「セルフレビュー（作成者）」セクションがありません。\n' +
+                'テンプレート(.github/pull_request_template.md)を使用し、セルフレビュー欄を追加してください。'
+              );
+            } else {
+              core.notice('セルフレビュー欄を検出しました。');
+            }
+
