@@ -8,6 +8,7 @@ Type=simple
 WorkingDirectory=/srv/dailylog-develop
 Environment=NODE_ENV=production
 Environment=PORT=3003
+Environment=BASE_PATH=/dailylog-dev
 EnvironmentFile=-/srv/dailylog-develop/.env
 ExecStart=/usr/bin/env node /srv/dailylog-develop/server.js
 Restart=always
@@ -22,4 +23,3 @@ ReadWritePaths=/srv/dailylog-develop /srv/dailylog-develop/data
 
 [Install]
 WantedBy=multi-user.target
-

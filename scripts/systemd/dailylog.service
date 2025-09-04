@@ -11,6 +11,7 @@ WorkingDirectory=/srv/dailylog
 # 環境設定: 本番想定。まず既定値、後段の .env で上書き可。
 Environment=NODE_ENV=production
 Environment=PORT=3002
+Environment=BASE_PATH=/dailylog
 EnvironmentFile=-/srv/dailylog/.env
 
 # 実行コマンド（Node は PATH 上にあるものを優先して検出）
