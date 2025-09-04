@@ -708,6 +708,22 @@
           buildTimegridCSS();
         }
         const days = daysInMonth(m);
+        // まず /api/month を試みる（失敗時は /api/day 多重へフォールバック）
+        let byDateData = new Map();
+        if (!useSample) {
+          try {
+            const r = await fetch(`api/month?month=${m}`);
+            if (r.ok) {
+              const mj = await r.json();
+              if (mj && Array.isArray(mj.days)) {
+                byDateData = new Map(mj.days.map((d) => [d.date, d]));
+              }
+            }
+          } catch (e) {
+            // ignore and fallback
+          }
+        }
+
         for (const d of days) {
           let j;
           if (useSample) {
@@ -715,6 +731,8 @@
               activities: samplePlanForDay(d, sampleId),
               ...sampleMetricsForDay(d, sampleId),
             };
+          } else if (byDateData.has(d)) {
+            j = byDateData.get(d);
           } else {
             const r = await fetch(`api/day?date=${d}`);
             j = await r.json();

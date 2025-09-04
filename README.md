@@ -36,6 +36,44 @@ npx vitest -r
 
 ## 想定ディレクトリ
 
+````
+
+## API 概要
+
+- `GET /api/health` → `{ ok: true }`（Basic認証有効時は未認証で 401）
+- `GET /api/day?date=YYYY-MM-DD` → 単日データ
+- `POST /api/day` → 単日データの作成/更新
+- `GET /api/export?month=YYYY-MM` → 月次CSV（ヘッダ + 48行×日数）
+- `GET /api/month?month=YYYY-MM` → 月次JSON集約（画面最適化用）
+
+### /api/month 仕様（簡易）
+
+- リクエスト: `GET /api/month?month=2025-09`
+- レスポンス例（抜粋）:
+
+```json
+{
+  "month": "2025-09",
+  "days": [
+    {
+      "date": "2025-09-01",
+      "sleep_minutes": 300,
+      "fatigue": { "morning": 3, "noon": 4, "night": 5 },
+      "mood": { "morning": 6, "noon": 7, "night": 8 },
+      "note": "...",
+      "activities": [ { "slot": 0, "category": "sleep", "label": "睡眠" } ]
+    }
+  ]
+}
+````
+
+- 異常: `month` が `YYYY-MM` でない場合は 400。
+- 備考: 月内の全日を昇順で返却。データが無い日は既定値+空配列。
+
+curl例:
+
+```bash
+curl -s 'http://127.0.0.1:3002/api/month?month=2025-09' | jq '.days[0]'
 ```
 
 ## 表示設定（月次グラフ/日次）
@@ -59,6 +97,7 @@ npx vitest -r
 - 高さは 14px 既定。判別しにくい場合は画面上で 18px に上げてから印刷。
 
 注意（配色について）
+
 - 印刷ビュー（`public/month_print.html`）は紙での視認性を優先するため、画面の配色そのままではなく、モノクロでも判別しやすいパターン（ストライプ等）でカテゴリを表現します。
 - 画面上の月次一覧は配色パレット（hc/mid/pastel）を用いますが、印刷時はパターン優先に切り替わります（機能上の仕様）。
 
@@ -66,18 +105,20 @@ npx vitest -r
 
 - 月次から日次へ遷移する際に `pal`（配色）を引き継ぎます。
 - 日次も URL / `localStorage` の `dailylog.pal` を読み取り `palette-*` を適用します。
-.
-├─ server.js               # API/静的配信（後で追加）
-├─ public/                 # フロント（後で追加）
-├─ data/                   # SQLite（Git 管理外）
-└─ tmp/docs/               # 私的ドキュメント（Git 管理外）
+  .
+  ├─ server.js # API/静的配信（後で追加）
+  ├─ public/ # フロント（後で追加）
+  ├─ data/ # SQLite（Git 管理外）
+  └─ tmp/docs/ # 私的ドキュメント（Git 管理外）
 
 ## 環境変数
+
 - `PORT`: リッスンポート（例: 3002）
 - `DATA_DIR`: SQLite の格納ディレクトリ（例: ./data）
 - `DB_FILE`: SQLite ファイル名（例: dailylog.db / `:memory:` ならメモリDB）
 - `AUTH_USER` / `AUTH_PASS`: 設定すると Basic 認証が有効
-```
+
+````
 
 ## 貢献ガイド
 
@@ -97,7 +138,7 @@ gh issue create \
   --title "feat: 〇〇を追加" \
   --body  "背景/方針/受け入れ基準（日本語）" \
   --label "priority:P1" --label "type:feature"
-```
+````
 
 ## 運用（参考）
 
