@@ -14,7 +14,7 @@
         --col-date: 12mm; /* 印刷時はmmで安定させる */
         --col-metrics: 36mm;
         --col-note: 56mm;
-        --note-lines: 1; /* 備考の最大行数（1 or 2） */
+        /* 備考の最大行数はクラスで切替（note-2）既定1行 */
       }
       body {
         padding: 8px;
@@ -166,16 +166,23 @@
         font-size: 12px;
         color: #444;
         overflow: hidden;
-        /* 1行既定 → 2行オプション（-webkit-line-clamp） */
         display: -webkit-box;
         -webkit-box-orient: vertical;
-        -webkit-line-clamp: var(--note-lines);
+        -webkit-line-clamp: 1; /* 既定1行 */
+        overflow-wrap: anywhere; /* 長文やCJK混在でも折返し */
+        word-break: break-word;
+      }
+      :root.note-2 .note {
+        -webkit-line-clamp: 2;
       }
       /* Fallback: 非WebKit での2行制限 */
-      @supports not (-webkit-line-clamp: 2) {
+      @supports not (-webkit-line-clamp: 1) {
         .note {
           line-height: 1.2;
-          max-height: calc(1.2em * var(--note-lines));
+          max-height: 1.2em;
+        }
+        :root.note-2 .note {
+          max-height: calc(1.2em * 2);
         }
       }
 
@@ -434,7 +441,7 @@
 
         // 備考2行オプション
         const linesParam = Math.max(1, Math.min(2, parseInt(q.get('note_lines') || '1', 10) || 1));
-        document.documentElement.style.setProperty('--note-lines', String(linesParam));
+        document.documentElement.classList.toggle('note-2', linesParam === 2);
         const chk2 = document.getElementById('chkNote2');
         if (chk2) {
           chk2.checked = linesParam === 2;
