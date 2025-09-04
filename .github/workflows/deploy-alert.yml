@@ -1,0 +1,72 @@
+name: Deploy Alerts
+
+on:
+  workflow_run:
+    workflows: ['Deploy (production)']
+    types: [completed]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  on-failure:
+    if: ${{ github.event.workflow_run.conclusion != 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create or update failure Issue
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const wr = context.payload.workflow_run;
+            const title = `infra: Deploy (production) 失敗通知`;
+            const labels = ["type:infra", "priority:P0"]; // P0: 要即時対応
+            const assignees = ["mo9mo9-uwu-mo9mo9"];
+
+            // 探す: タイトル一致のOpen Issue
+            const { data: issues } = await github.rest.issues.listForRepo({ owner, repo, state: 'open', per_page: 100, labels: labels.join(',') });
+            let found = issues.find(i => i.title === title);
+
+            const body = [
+              `デプロイが失敗しました。対応お願いします。`,
+              ``,
+              `- 結果: ${wr.conclusion}`,
+              `- Run: ${wr.html_url}`,
+              `- Branch: ${wr.head_branch}`,
+              `- SHA: ${wr.head_sha}`,
+              `- 発生: ${wr.updated_at}`,
+            ].join('\n');
+
+            if (!found) {
+              const created = await github.rest.issues.create({ owner, repo, title, body, labels, assignees });
+              core.info(`Created issue #${created.data.number}`);
+            } else {
+              await github.rest.issues.update({ owner, repo, issue_number: found.number, state: 'open', assignees });
+              await github.rest.issues.createComment({ owner, repo, issue_number: found.number, body });
+              core.info(`Updated issue #${found.number}`);
+            }
+
+  on-success:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close failure Issue if exists
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const title = `infra: Deploy (production) 失敗通知`;
+            const { data: issues } = await github.rest.issues.listForRepo({ owner, repo, state: 'open', per_page: 100, labels: 'type:infra,priority:P0' });
+            const found = issues.find(i => i.title === title);
+            if (found) {
+              await github.rest.issues.createComment({ owner, repo, issue_number: found.number, body: '復旧: 直近のデプロイが成功しました。Issueをクローズします。' });
+              await github.rest.issues.update({ owner, repo, issue_number: found.number, state: 'closed' });
+              core.info(`Closed issue #${found.number}`);
+            } else {
+              core.info('No open failure issue to close.');
+            }
