@@ -171,14 +171,18 @@
         color: #444;
         overflow: hidden;
         display: block;
-        line-height: 1.2;
-        height: calc(1.2em * var(--note-lines));
-        min-height: calc(1.2em * var(--note-lines));
-        overflow-wrap: anywhere; /* 長文やCJK混在でも折返し */
-        word-break: break-word;
         min-width: 0; /* Grid内で折返し可能に */
-        white-space: normal !important; /* 画面共通CSSの nowrap を確実に上書き */
-        text-overflow: clip !important; /* 省略記号を無効化（複数行のため） */
+      }
+      /* 画面/印刷共通のデフォルト（1行）: innerを1行に見せる */
+      .note .note-inner {
+        display: block;
+        line-height: 1.2;
+        max-height: 1.2em; /* 既定1行 */
+        overflow: hidden;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        white-space: normal;
+        text-overflow: clip;
       }
 
       @page {
@@ -186,6 +190,24 @@
         margin: 8mm;
       }
       @media print {
+        /* 印刷時は強制上書きで複数行折返しを有効化 */
+        .rows .dayrow {
+          align-items: start;
+        }
+        .rows .dayrow .note {
+          white-space: normal !important;
+          text-overflow: clip !important;
+          min-width: 0;
+        }
+        .rows .dayrow .note .note-inner {
+          line-height: 1.2 !important;
+          max-height: calc(1.2em * var(--note-lines)) !important; /* 1 or 2 行上限 */
+          overflow: hidden !important;
+          overflow-wrap: anywhere !important;
+          word-break: break-word !important;
+          white-space: normal !important;
+          display: block !important;
+        }
         .noprint {
           display: none;
         }
@@ -414,8 +436,11 @@
             row.appendChild(metricsEl);
             const noteEl = document.createElement('div');
             noteEl.className = 'note';
-            noteEl.textContent = nt;
             noteEl.title = nt;
+            const span = document.createElement('span');
+            span.className = 'note-inner';
+            span.textContent = nt;
+            noteEl.appendChild(span);
             row.appendChild(noteEl);
             rows.appendChild(row);
           }
