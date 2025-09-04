@@ -1,0 +1,28 @@
+[Unit]
+Description=DailyLog (Node.js) service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+# アプリ配置先。Deploy ワークフローは /srv/dailylog を前提。
+WorkingDirectory=/srv/dailylog
+
+# 環境設定: 本番想定。機密は .env から読み込み（存在しない場合は無視）。
+Environment=NODE_ENV=production
+EnvironmentFile=-/srv/dailylog/.env
+
+# 実行コマンド（Node は PATH 上にあるものを優先して検出）
+ExecStart=/usr/bin/env node /srv/dailylog/server.js
+
+# 自動再起動
+Restart=always
+RestartSec=3
+
+# 実行ユーザー（必要に応じて有効化）
+#User=dailylog
+#Group=dailylog
+
+[Install]
+WantedBy=multi-user.target
+
