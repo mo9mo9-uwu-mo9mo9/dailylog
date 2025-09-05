@@ -1,0 +1,51 @@
+name: Deploy (develop)
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-develop
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ github.ref == 'refs/heads/develop' }}
+    runs-on: [self-hosted, dailylog-prod]
+    timeout-minutes: 15
+    environment: development
+    steps:
+      - name: Show host info
+        run: |
+          echo "runner:" $(uname -a)
+          node -v || true
+          npm -v || true
+      - name: Pull latest and install prod deps
+        working-directory: /srv/dailylog-develop
+        run: |
+          set -euxo pipefail
+          if [ ! -d .git ]; then
+            sudo -u dailylog git clone https://github.com/${{ github.repository }} /srv/dailylog-develop
+            cd /srv/dailylog-develop
+          fi
+          git fetch --prune --quiet origin
+          git reset --hard origin/develop
+          npm ci --omit=dev || npm ci --only=production
+      - name: Restart service
+        run: |
+          sudo systemctl restart dailylog-develop
+          sleep 2
+          systemctl is-active --quiet dailylog-develop
+      - name: Health check (200 or 401 is OK)
+        env:
+          PORT: 3003
+        run: |
+          set -euxo pipefail
+          CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:${PORT}/api/health || true)
+          if [ "$CODE" = "200" ] || [ "$CODE" = "401" ]; then
+            echo "Service reachable with HTTP $CODE"
+          else
+            echo "Unexpected health status: $CODE" >&2
+            exit 1
+          fi
