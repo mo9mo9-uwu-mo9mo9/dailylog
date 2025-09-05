@@ -549,16 +549,11 @@
             const b = document.createElement('div');
             b.id = bannerId;
             b.textContent = `DEBUG ${new Date().toISOString()}`;
-<<<<<<< HEAD
+            // ヘッダ直後に配置し、レイアウトに参加させて重なりを回避
             b.style.cssText = 'position:sticky;top:0;left:0;right:0;display:block;z-index:10;background:#ff00a8;color:#fff;padding:6px 10px;font-weight:800;text-align:center;';
             const head = document.querySelector('.head');
             if (head && head.parentNode) head.parentNode.insertBefore(b, head.nextSibling);
             else document.body.insertBefore(b, document.body.firstChild);
-=======
-            b.style.cssText =
-              'position:fixed;top:0;left:0;right:0;z-index:9999;background:#ff00a8;color:#fff;padding:6px 10px;font-weight:800;text-align:center;';
-            document.body.appendChild(b);
->>>>>>> origin/develop
           }
         }
         applyDebug(dbg);
