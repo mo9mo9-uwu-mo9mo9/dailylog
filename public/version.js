@@ -17,7 +17,12 @@
       const small = document.querySelector('footer small');
       if (!small) return;
       const parts = [];
-      if (v?.commit && v.commit !== 'unknown') parts.push(String(v.commit));
+      // develop 環境（/dailylog-dev 配下）のときは "Dev <hash>" と表示
+      const isDev = (location.pathname || '').includes('/dailylog-dev');
+      if (v?.commit && v.commit !== 'unknown') {
+        const commitText = (isDev ? 'Dev ' : '') + String(v.commit);
+        parts.push(commitText);
+      }
       if (v?.built_at) parts.push(fmtBuiltAtMin(v.built_at));
       if (parts.length === 0) return;
       // Ensure delimiter prefix
