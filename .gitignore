@@ -47,3 +47,9 @@ tmp/
 
 # ローカル機密設定（Git 管理外）
 local/
+# Private docs
+local/docs-private/
+# Local secrets/config (if used as private store)
+# local/  # uncomment if entire local is private
+# Ephemeral & build outputs
+node_modules/.cache/
