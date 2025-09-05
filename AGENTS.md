@@ -324,11 +324,13 @@ gh issue create \
 - **ブランチ保護**: `main` 直コミット禁止、Squash Merge 推奨。
 
 ### 権限の推奨（最小権限）
+
 - `.env`: 0640（所有: `dailylog:dailylog` などサービス実行ユーザ）。配布はしない。
 - `data/` ディレクトリ: 0750、配下の `*.db`: 0640。
 - リポジトリの `local/`（機密設定置き場）: 0700（Git 管理外）。
 
 点検スクリプト（read-only）:
+
 - `scripts/security/check-perms.sh`（`--strict` で不備があれば非0終了）
 
 ## ドキュメント運用と命名（重要）
@@ -346,6 +348,7 @@ gh issue create \
 - `tmp/docs/`: 作業メモ/設計ドラフト（Git管理外）。公開時は必要に応じてサニタイズし別配布。
 
 ### 運用メモ（非公開）の章立て（推奨）
+
 - 置き場所: `tmp/docs/`（Git 管理外）。
 - 推奨テンプレ: `assets/templates/ops_memo_template.md`。
 - 章立て例: 概要／環境情報／デプロイ・再起動／ヘルスチェック／ロールバック／FAQ／コマンド集／連絡先。
