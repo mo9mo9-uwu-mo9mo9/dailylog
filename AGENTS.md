@@ -8,8 +8,8 @@
 - ドキュメント配置: 公開は `docs/`、非公開は `local/docs-private/`（Git管理外）。`tmp/` は一時物のみでドキュメント保管は禁止。
 - Issueラベル必須: `priority:P0` or `priority:P1` と `type:*`。
 - 実装前に「OK / ok / おk」の明示承認を取得。
-- 情報取得（read-only：gh/ログ/設定の参照）は承認不要。書き込み・生成・削除・インストール・CI実行は従来どおり承認必須。
-- 検証系（C-safe）: lint/型/フォーマット確認（チェックのみ）/テスト（スナップショット非更新）/dev起動/軽ビルドは承認不要（Git/リモート不変かつ一時領域に限定）。
+- 情報取得（read-only：gh/ログ/設定の参照）は承認不要。書き込み・生成・削除・インストール・CI実行は従来どおり承認必須。 （→ [詳細](#readonly-info)）
+- 検証系（C-safe）: lint/型/フォーマット確認（チェックのみ）/テスト（スナップショット非更新）/dev起動/軽ビルドは承認不要（Git/リモート不変かつ一時領域に限定）。 （→ [詳細](#c-safe-ops)）
 
 - [プロジェクト構成とモジュール整理](#プロジェクト構成とモジュール整理)
 - [ビルド・テスト・開発コマンド](#ビルドテスト開発コマンド)
@@ -164,6 +164,7 @@
 承認キーワード: OK / ok / おk（着手可）、NG / ng / んg（中止）
 ```
 
+<a id="readonly-info"></a>
 #### 例外: 情報取得（read-only）の扱い
 
 - 対象: `gh` の参照系（`issue view`/`pr view`/`pr checks`/`workflow list`/`api` の GET）、`git` の参照系（`status`/`log`/`show`/`branch`）、ファイル閲覧（`cat`/`rg`/`ls`）、設定やCI/ラベルの一覧取得など、読み取り専用かつ副作用のない操作。
@@ -171,6 +172,7 @@
 - 目的: 要件整理・影響範囲の調査・計画立案のための情報収集を滞りなく行う。
 - 共有: 収集結果は要点サマリを会話に貼り、必要に応じてリンク/ログを添付する。
 
+<a id="c-safe-ops"></a>
 #### 承認不要オペレーション（検証系・C-safe）
 
 - OK: `npx tsc --noEmit` / `npx eslint . --cache=false` / `npx prettier . --check` / `npm test -- --ci --runInBand`（スナップショット更新禁止）/ `npm run dev` / `npm run build`（出力はGit非追跡）
