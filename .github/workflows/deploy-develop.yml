@@ -9,6 +9,9 @@ concurrency:
   group: deploy-develop
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     if: ${{ github.ref == 'refs/heads/develop' }}
