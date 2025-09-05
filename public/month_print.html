@@ -202,9 +202,13 @@
       }
       @media print {
         /* デバッグ表示は印刷には出さない */
-        #debug-banner { display: none !important; }
+        #debug-banner {
+          display: none !important;
+        }
         /* デバッグバッジも印刷には出さない */
-        .debug-badge { display: none !important; }
+        .debug-badge {
+          display: none !important;
+        }
         /* 印刷時はテーブルレイアウトで安定化 */
         .rows {
           display: table;
