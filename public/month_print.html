@@ -27,6 +27,7 @@
           #ffffff 10px,
           #ffffff 20px
         );
+        padding-top: 0; /* sticky化でレイアウトに参加させるため0に戻す */
       }
       body.debug-print .note {
         background: #fff59d !important;
@@ -211,6 +212,8 @@
         margin: 8mm;
       }
       @media print {
+        #debug-banner { display: none !important; }
+        body.debug-print { padding-top: 0 !important; }
         /* 印刷時はテーブルレイアウトで安定化 */
         .rows {
           display: table;
@@ -547,8 +550,8 @@
             b.id = bannerId;
             b.textContent = `DEBUG ${new Date().toISOString()}`;
             b.style.cssText =
-              'position:fixed;top:0;left:0;right:0;z-index:9999;background:#ff00a8;color:#fff;padding:6px 10px;font-weight:800;text-align:center;';
-            document.body.appendChild(b);
+              'position:sticky;top:0;left:0;right:0;display:block;z-index:10;background:#ff00a8;color:#fff;padding:6px 10px;font-weight:800;text-align:center;';
+            document.body.insertBefore(b, document.body.firstChild);
           }
         }
         applyDebug(dbg);
