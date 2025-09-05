@@ -16,6 +16,24 @@ function createApp(opts = {}) {
   app.use(compression());
   app.use(express.json({ limit: '1mb' }));
 
+  // --- App version info (commit + built_at)
+  const VERSION = (() => {
+    let commit = String(process.env.GIT_SHA || '').trim();
+    try {
+      if (!commit) {
+        const { execSync } = require('child_process');
+        commit = execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
+          .toString()
+          .trim();
+      }
+    } catch (_) {
+      // ignore; fall back to unknown
+    }
+    if (!commit) commit = 'unknown';
+    const built_at = new Date().toISOString();
+    return { commit, built_at };
+  })();
+
   // Base path for hosting under a prefix (e.g., /dailylog, /dailylog-dev)
   // Empty string or '/' means root
   const BASE_PATH_RAW = (process.env.BASE_PATH || '').trim();
@@ -53,6 +71,12 @@ function createApp(opts = {}) {
   const api = express.Router();
   // Health
   api.get('/health', (_req, res) => res.json({ ok: true }));
+
+  // Version endpoint (no-store)
+  api.get('/version', (_req, res) => {
+    res.set('Cache-Control', 'no-store');
+    res.json({ commit: VERSION.commit, built_at: VERSION.built_at });
+  });
 
   // --- Helpers (DB statements)
   const getDayStmt = db.prepare('SELECT * FROM days WHERE date = ?');
