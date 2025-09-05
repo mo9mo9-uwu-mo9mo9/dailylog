@@ -165,6 +165,7 @@
 ```
 
 <a id="readonly-info"></a>
+
 #### 例外: 情報取得（read-only）の扱い
 
 - 対象: `gh` の参照系（`issue view`/`pr view`/`pr checks`/`workflow list`/`api` の GET）、`git` の参照系（`status`/`log`/`show`/`branch`）、ファイル閲覧（`cat`/`rg`/`ls`）、設定やCI/ラベルの一覧取得など、読み取り専用かつ副作用のない操作。
@@ -173,6 +174,7 @@
 - 共有: 収集結果は要点サマリを会話に貼り、必要に応じてリンク/ログを添付する。
 
 <a id="c-safe-ops"></a>
+
 #### 承認不要オペレーション（検証系・C-safe）
 
 - OK: `npx tsc --noEmit` / `npx eslint . --cache=false` / `npx prettier . --check` / `npm test -- --ci --runInBand`（スナップショット更新禁止）/ `npm run dev` / `npm run build`（出力はGit非追跡）
