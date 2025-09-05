@@ -49,4 +49,3 @@ jobs:
             echo "Unexpected health status: $CODE" >&2
             exit 1
           fi
-
