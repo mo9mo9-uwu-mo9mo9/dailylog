@@ -141,6 +141,15 @@ gh issue create \
   --label "priority:P1" --label "type:feature"
 ````
 
+## ブランチ保護（main/develop）
+
+- 本リポジトリのブランチ保護の詳細と再適用手順は AGENTS.md を参照してください。
+  - 参照: AGENTS.md → 「GitHub CLI（gh）の利用方針」内「ブランチ保護の適用（main/develop）」
+  - 実行例（要 gh ログイン）:
+    ```bash
+    gh auth status
+    scripts/gh-branch-protect.sh
+    ```
 ## 運用（参考）
 
 - 本番は N100 サーバ（Ubuntu）上で `systemd` 常駐、公開は Tailscale Funnel を使用。
