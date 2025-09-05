@@ -17,26 +17,16 @@
         /* 備考の行数（1|2）。note-2 クラスで上書き */
         --note-lines: 1;
       }
-      /* Debugモードの極端なスタイル（反映確認用） */
-      body.debug-print {
-        outline: 6px solid #ff00a8;
-        background: repeating-linear-gradient(
-          45deg,
-          #fff0f8 0,
-          #fff0f8 10px,
-          #ffffff 10px,
-          #ffffff 20px
-        );
-      }
-      body.debug-print .note {
-        background: #fff59d !important;
-      }
-      body.debug-print .note .note-inner {
-        font-size: 16px !important;
-      }
-      body.debug-print .daydate {
-        background: #000;
+      /* develop検証用のデバッグ表示はヘッダ内の小バッジのみ（印刷時は非表示） */
+      .debug-badge {
+        display: inline-block;
+        margin-left: 8px;
+        padding: 2px 6px;
+        font-size: 12px;
+        font-weight: 800;
         color: #fff;
+        background: #ff00a8;
+        border-radius: 3px;
       }
       :root.note-2 {
         --note-lines: 2;
@@ -212,8 +202,13 @@
       }
       @media print {
         /* デバッグ表示は印刷には出さない */
-        #debug-banner { display: none !important; }
-        body.debug-print { background: none !important; outline: none !important; }
+        #debug-banner {
+          display: none !important;
+        }
+        /* デバッグバッジも印刷には出さない */
+        .debug-badge {
+          display: none !important;
+        }
         /* 印刷時はテーブルレイアウトで安定化 */
         .rows {
           display: table;
@@ -537,28 +532,22 @@
           });
         }
 
-        // Debugモード（極端な見た目変更で反映確認）
+        // Debugバッジの表示切替
         const dbg = (q.get('debug') || '0') === '1';
         const chkDbg = document.getElementById('chkDebug');
         if (chkDbg) chkDbg.checked = dbg;
         function applyDebug(on) {
-          document.body.classList.toggle('debug-print', !!on);
-          const bannerId = 'debug-banner';
-          document.getElementById(bannerId)?.remove();
+          // ヘッダ内に小さなバッジのみを表示（印刷時は非表示）
+          const head = document.querySelector('.head');
+          if (!head) return;
+          const id = 'debug-badge';
+          head.querySelector('#' + id)?.remove();
           if (on) {
-            const b = document.createElement('div');
-            b.id = bannerId;
-            b.textContent = `DEBUG ${new Date().toISOString()}`;
-<<<<<<< HEAD
-            b.style.cssText = 'position:sticky;top:0;left:0;right:0;display:block;z-index:10;background:#ff00a8;color:#fff;padding:6px 10px;font-weight:800;text-align:center;';
-            const head = document.querySelector('.head');
-            if (head && head.parentNode) head.parentNode.insertBefore(b, head.nextSibling);
-            else document.body.insertBefore(b, document.body.firstChild);
-=======
-            b.style.cssText =
-              'position:fixed;top:0;left:0;right:0;z-index:9999;background:#ff00a8;color:#fff;padding:6px 10px;font-weight:800;text-align:center;';
-            document.body.appendChild(b);
->>>>>>> origin/develop
+            const s = document.createElement('span');
+            s.className = 'debug-badge';
+            s.id = id;
+            s.textContent = 'DEBUG';
+            head.appendChild(s);
           }
         }
         applyDebug(dbg);
