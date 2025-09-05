@@ -148,11 +148,57 @@ gh issue create \
 
 ### 検証環境（develop）
 
-- ブランチ: `develop`（main と同等の保護）
-- デプロイ: GitHub Actions "Deploy (develop)"（自動）
-- サービス: `dailylog-develop.service`、作業ディレクトリ: `/srv/dailylog-develop`、PORT=3003（`.env`で上書き可）、DBは `dailylog-dev.db` を推奨
-- ヘルス: `curl -i http://127.0.0.1:3003/api/health`
-- Funnel 公開: 本番 `/dailylog/` と分離し `/dailylog-dev/` で公開（運用設定側でパス分け）
+- ブランチ: `develop`（main と同等の保護推奨）
+- デプロイ: GitHub Actions "Deploy (develop)"（push to develop で自動）
+- サービス: `dailylog-develop.service`、作業ディレクトリ: `/srv/dailylog-develop`
+- 既定ポート: `3003`（`.env` で上書き可）
+- DB: `dailylog-dev.db` を推奨（`.env` の `DB_FILE`）
+- ヘルス: `curl -i http://127.0.0.1:3003/api/health`（200/401 を OK とする）
+- 公開: 本番 `/dailylog/` と分離し `/dailylog-dev/` に公開（Tailscale Funnel 等の運用設定側でパス分け）
+
+初回セットアップ（サーバ側、root）
+
+```bash
+# 1) 作業ユーザ/ディレクトリ（存在しない場合のみ）
+id dailylog 2>/dev/null || useradd -r -s /usr/sbin/nologin dailylog
+install -d -o dailylog -g dailylog /srv/dailylog-develop/{data,}
+
+# 2) .env を配置（例: 検証用）
+cat >/srv/dailylog-develop/.env <<'ENV'
+PORT=3003
+BASE_PATH=/dailylog-dev
+DATA_DIR=/srv/dailylog-develop/data
+DB_FILE=dailylog-dev.db
+# AUTH_USER=...
+# AUTH_PASS=...
+ENV
+chown dailylog:dailylog /srv/dailylog-develop/.env
+
+# 3) systemd ユニットを配置して有効化
+install -m 0644 -o root -g root scripts/systemd/dailylog-develop.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now dailylog-develop
+
+# 4) GitHub Actions Runner が self-hosted ラベル（dailylog-prod を含む）で稼働していることを確認
+```
+
+手動デプロイ（フォールバック）
+
+```bash
+ssh <develop-host>
+cd /srv/dailylog-develop
+git fetch --prune && git reset --hard origin/develop
+npm ci --omit=dev || npm ci --only=production
+sudo systemctl restart dailylog-develop
+curl -i http://127.0.0.1:3003/api/health
+```
+
+環境変数サンプル
+
+```bash
+cp .env.example .env
+# 検証: PORT=3003, DB_FILE=dailylog-dev.db, BASE_PATH=/dailylog-dev 等を設定
+```
 
 ### 本番ポートの統一（PORT=3002）
 
