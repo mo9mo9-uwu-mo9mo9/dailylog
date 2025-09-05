@@ -8,6 +8,8 @@
 - ドキュメント配置: 公開は `docs/`、非公開は `local/docs-private/`（Git管理外）。`tmp/` は一時物のみでドキュメント保管は禁止。
 - Issueラベル必須: `priority:P0` or `priority:P1` と `type:*`。
 - 実装前に「OK / ok / おk」の明示承認を取得。
+- 情報取得（read-only：gh/ログ/設定の参照）は承認不要。書き込み・生成・削除・インストール・CI実行は従来どおり承認必須。 （→ [詳細](#readonly-info)）
+- 検証系（C-safe）: lint/型/フォーマット確認（チェックのみ）/テスト（スナップショット非更新）/dev起動/軽ビルドは承認不要（Git/リモート不変かつ一時領域に限定）。 （→ [詳細](#c-safe-ops)）
 
 - [プロジェクト構成とモジュール整理](#プロジェクト構成とモジュール整理)
 - [ビルド・テスト・開発コマンド](#ビルドテスト開発コマンド)
@@ -146,7 +148,7 @@
   - 前提/制約・オープンな質問
 - 承認キーワード: 着手可は「OK/ok/おk」、中止・修正依頼は「NG/ng/んg」。明示の「OK/ok/おk」まで着手しない。
 - 待機時間: 設定しない（承認が出るまで待機）。
-- 例外運用: なし。必要が生じた場合のみ、その都度合意して例外を定義する。
+- 例外運用: 情報取得（read-only）および検証系（C-safe）は承認不要。その他の例外が必要な場合は、その都度合意して明文化する。
 
 #### 提案テンプレ（コピペ用）
 
@@ -161,6 +163,25 @@
 
 承認キーワード: OK / ok / おk（着手可）、NG / ng / んg（中止）
 ```
+
+<a id="readonly-info"></a>
+
+#### 例外: 情報取得（read-only）の扱い
+
+- 対象: `gh` の参照系（`issue view`/`pr view`/`pr checks`/`workflow list`/`api` の GET）、`git` の参照系（`status`/`log`/`show`/`branch`）、ファイル閲覧（`cat`/`rg`/`ls`）、設定やCI/ラベルの一覧取得など、読み取り専用かつ副作用のない操作。
+- 禁止: 作成/更新/削除系（Issue/PR/ラベル等の作成・編集・Close）、`gh api` の `POST/PUT/PATCH/DELETE`、push、パッケージインストール、ワークフロー手動実行（`workflow run`）、秘密情報へのアクセスや権限変更。
+- 目的: 要件整理・影響範囲の調査・計画立案のための情報収集を滞りなく行う。
+- 共有: 収集結果は要点サマリを会話に貼り、必要に応じてリンク/ログを添付する。
+
+<a id="c-safe-ops"></a>
+
+#### 承認不要オペレーション（検証系・C-safe）
+
+- OK: `npx tsc --noEmit` / `npx eslint . --cache=false` / `npx prettier . --check` / `npm test -- --ci --runInBand`（スナップショット更新禁止）/ `npm run dev` / `npm run build`（出力はGit非追跡）
+- NG: `prettier --write` / `eslint --fix` / 依存変更（`npm i`/`npm ci`）/ `git commit`/`push` / `gh pr comment/merge` / `gh run rerun` / `gh workflow run` / `gh api` の変更系
+- 条件: Git追跡ファイル不変、リモート無変更。書込みは `tmp/codex/` や `.cache/` 等の非追跡領域に限定。
+- ネットワーク: GET/HEAD 等の参照のみ。外部サービスへの POST/PUT/DELETE 禁止。ローカル `127.0.0.1` は可。
+- 実行前後チェック: `git status --porcelain` が空であることを推奨。
 
 ### Issue/PR 統合（低リスクの効率化）
 
@@ -220,6 +241,26 @@ PR統合告知（下位PRをClose）:
 
 - 本プロジェクトの Issue/PR/レビュー操作は、原則として GitHub CLI `gh` を使用します（UI 操作可だが既定は gh）。
 - 事前条件: `gh auth status` でログイン済みであること（必要なら `gh auth login`）。
+
+- 読み取り専用の取得は承認不要: `gh issue view`/`pr view`/`pr checks`/`workflow list`/`api` (GET) など。作成/更新/削除/dispatch は承認必須。
+
+### ブランチ保護の適用（main/develop）
+
+- 補助スクリプト: `scripts/gh-branch-protect.sh` を追加。以下を適用（冪等）。
+  - PR必須（レビュー必須はOFF = 承認数0）
+  - 必須チェック: CI (PR) の `build (18.x)`, `build (20.x)` を要求（strict=ON / up-to-date必須）
+  - 管理者にも適用（enforce_admins=ON）
+  - 線形履歴（required_linear_history=ON）
+  - force-push 禁止 / ブランチ削除禁止
+
+```bash
+# 実行例（ghログイン済み）
+scripts/gh-branch-protect.sh
+
+# 検証（要点のみ）
+gh api /repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/branches/main/protection | jq '{enforce_admins:.enforce_admins.enabled, strict:.required_status_checks.strict, contexts:.required_status_checks.contexts, linear:.required_linear_history.enabled}'
+gh api /repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/branches/main/protection/required_pull_request_reviews | jq .required_approving_review_count  # => 0
+```
 
 ### よく使うコマンド例
 
