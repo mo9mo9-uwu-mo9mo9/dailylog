@@ -333,6 +333,12 @@ gh issue create \
 
 - `scripts/security/check-perms.sh`（`--strict` で不備があれば非0終了）
 
+### 運用メモ（非公開）の章立て（推奨）
+
+- 置き場所: `tmp/docs/`（Git 管理外）。
+- 推奨テンプレ: `assets/templates/ops_memo_template.md`。
+- 章立て例: 概要／環境情報／デプロイ・再起動／ヘルスチェック／ロールバック／FAQ／コマンド集／連絡先。
+
 ## ドキュメント運用と命名（重要）
 
 - **保管先**: 設計/運用ドキュメントは `tmp/docs/` に保存（Git には含めない）。
