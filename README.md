@@ -146,6 +146,14 @@ gh issue create \
 - サービス名: `dailylog.service`、作業ディレクトリ: `/srv/dailylog`。
 - 再起動: `sudo systemctl restart dailylog`、疎通: `curl -u $AUTH_USER:$AUTH_PASS http://127.0.0.1:$PORT/api/health`。
 
+### 検証環境（develop）
+
+- ブランチ: `develop`（main と同等の保護）
+- デプロイ: GitHub Actions "Deploy (develop)"（自動）
+- サービス: `dailylog-develop.service`、作業ディレクトリ: `/srv/dailylog-develop`、PORT=3003（`.env`で上書き可）、DBは `dailylog-dev.db` を推奨
+- ヘルス: `curl -i http://127.0.0.1:3003/api/health`
+- Funnel 公開: 本番 `/dailylog/` と分離し `/dailylog-dev/` で公開（運用設定側でパス分け）
+
 ### 本番ポートの統一（PORT=3002）
 
 - 目的: GitHub Actions の "Deploy (production)" が `http://127.0.0.1:3002/api/health` をヘルスチェックするため、実サーバの待受ポートも 3002 に統一します。
