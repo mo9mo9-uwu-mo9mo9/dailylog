@@ -3,6 +3,7 @@
 ## 目次
 
 > TL;DR（MUST抜粋）
+
 - すべて日本語。`main` 直コミット禁止。PRは必ず関連Issueを明記（CI検査）。
 - ドキュメント配置: 公開は `docs/`、非公開は `local/docs-private/`（Git管理外）。`tmp/` は一時物のみでドキュメント保管は禁止。
 - Issueラベル必須: `priority:P0` or `priority:P1` と `type:*`。
