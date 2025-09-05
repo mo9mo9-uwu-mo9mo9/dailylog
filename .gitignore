@@ -40,11 +40,10 @@ data/*
 tmp/
 *.log
 
-# ドキュメント（Git 管理外）
-docs/
+# ドキュメント
+# 公開用ドキュメントは `docs/` に保存（Git で追跡する）
+# 機微情報や非公開資料は `local/docs-private/`（Git 管理外）に保存すること
 
-# Local docs (untracked)
-tmp/docs/
 
 # ローカル機密設定（Git 管理外）
 local/
