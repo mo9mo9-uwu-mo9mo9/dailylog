@@ -4,6 +4,9 @@ on:
   push:
     branches: [main, 'feat/**', 'fix/**', 'chore/**', 'ci/**']
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
